@@ -4,7 +4,7 @@
     "ubyte": {"c_type": "uint8_t"},
     "word": {"c_type": "int16_t"},
     "uword": {"c_type": "uint16_t"},
-    "dword": {"c_type": "uint32_t"},
+    "dword": {"c_type": "int32_t"},
     "udword": {"c_type": "uint32_t"},
     "string": {"c_type": "const char*"},
     "callback": {"c_type": "void*"}

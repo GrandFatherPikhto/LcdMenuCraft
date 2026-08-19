@@ -11,13 +11,6 @@ config:
   wrap_by_name_functions: true
   enable_node_names: true
 menu:
-- id: enable
-  title: Enable
-  type: string
-  role: fixed
-  values:
-  - Enable
-  - Enabled
 - id: start
   title: Start
   type: string
@@ -27,8 +20,8 @@ menu:
   - Started
   default_idx: 0
   navigate: cyclic
-- id: options
-  title: Options
+- id: regimes
+  title: Regimes
   type: string
   role: fixed
   values:

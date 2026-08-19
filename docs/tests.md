@@ -33,11 +33,18 @@ The suite is split into:
 |---------|-------|----------|
 | `project_root` | session | Absolute path of the project root |
 | `package_dir` | session | Absolute path of the `generate_menu` package |
-| `config_path` | session | Absolute path of `config/config.yaml` |
-| `menu_config` | session | `MenuConfig` built from the real configuration |
-| `menu_data` | session | `MenuData` built from the real configuration |
+| `config_path` | session | Absolute path of `config/test_config.yaml` (**not** the real `config/config.yaml`) |
+| `menu_config` | session | `MenuConfig` built from `test_config.yaml` |
+| `menu_data` | session | `MenuData` built from `test_config.yaml` |
 | `menu_validator` | function | A fresh `MenuValidator` per test (it keeps internal state) |
 | `menu_flattener` | function | A fresh `MenuFlattener` per test |
+
+All of these read [`config/test_config.yaml`](../config/test_config.yaml), which
+points at [`menu/test.yaml`](../menu/test.yaml) — a frozen copy of the original
+sample menu tree — instead of the real [`config/config.yaml`](../config/config.yaml)
+/ [`menu/menu.yaml`](../menu/menu.yaml). This keeps the suite (several tests assert
+exact node counts and ids) stable while the real menu tree is being edited for an
+actual device.
 
 ## 3. Test modules
 

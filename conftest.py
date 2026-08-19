@@ -30,8 +30,11 @@ os.environ.pop("MENU_PROCESSOR_LANG", None)
 #: Absolute path to the generate_menu package directory.
 PACKAGE_DIR = PROJECT_ROOT / "generate_menu"
 
-#: Absolute path to the main YAML configuration file (project root config/).
-CONFIG_PATH = PROJECT_ROOT / "config" / "config.yaml"
+#: Absolute path to the main YAML configuration file used by the test suite.
+#: Deliberately points at config/test_config.yaml -> menu/test.yaml (a frozen
+#: copy of the sample tree), not the real config/config.yaml -> menu/menu.yaml,
+#: so tests stay stable while the real menu tree is being edited for a device.
+CONFIG_PATH = PROJECT_ROOT / "config" / "test_config.yaml"
 
 
 @pytest.fixture(scope="session")

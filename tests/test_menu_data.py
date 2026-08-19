@@ -18,7 +18,7 @@ def test_c_type_mapping(menu_data):
     assert menu_data.c_type("ubyte") == "uint8_t"
     assert menu_data.c_type("word") == "int16_t"
     assert menu_data.c_type("uword") == "uint16_t"
-    assert menu_data.c_type("dword") == "uint32_t"
+    assert menu_data.c_type("dword") == "int32_t"
     assert menu_data.c_type("udword") == "uint32_t"
     assert menu_data.c_type("string") == "const char*"
     assert menu_data.c_type("callback") == "void*"

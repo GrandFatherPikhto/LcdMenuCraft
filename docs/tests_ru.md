@@ -35,11 +35,19 @@ pytest (сейчас **54 теста, все проходят**).
 |----------|---------|----------|
 | `project_root` | session | Абсолютный путь корня проекта |
 | `package_dir` | session | Абсолютный путь пакета `generate_menu` |
-| `config_path` | session | Абсолютный путь `config/config.yaml` |
-| `menu_config` | session | `MenuConfig` из реальной конфигурации |
-| `menu_data` | session | `MenuData` из реальной конфигурации |
+| `config_path` | session | Абсолютный путь `config/test_config.yaml` (**не** настоящего `config/config.yaml`) |
+| `menu_config` | session | `MenuConfig`, собранный из `test_config.yaml` |
+| `menu_data` | session | `MenuData`, собранный из `test_config.yaml` |
 | `menu_validator` | function | Свежий `MenuValidator` на каждый тест (хранит внутреннее состояние) |
 | `menu_flattener` | function | Свежий `MenuFlattener` на каждый тест |
+
+Все эти фикстуры читают [`config/test_config.yaml`](../config/test_config.yaml),
+который указывает на [`menu/test.yaml`](../menu/test.yaml) — замороженную копию
+исходного примера дерева меню — вместо настоящих
+[`config/config.yaml`](../config/config.yaml) /
+[`menu/menu.yaml`](../menu/menu.yaml). Это удерживает набор тестов стабильным
+(некоторые тесты проверяют точное количество узлов и их id), пока реальное дерево
+меню редактируется под конкретное устройство.
 
 ## 3. Тестовые модули
 

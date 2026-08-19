@@ -44,14 +44,14 @@ void {{function_name}}(menu_context_t *ctx, menu_id_t id, int8_t delta) {
 {% if function_info.navigate == "limit" %}{# navigate limit #}
     if (delta > 0) {
         // Увеличение с проверкой переполнения
-        if (*value <= max - (uint32_t)(delta * factor)) {
+        if (*value <= max - ({{function_info.c_type}})(delta * factor)) {
             *value += delta * factor;
         } else {
             *value = max;
         }
     } else {
         // Уменьшение с проверкой underflow
-        if (*value >= min + (uint32_t)(-delta * factor)) {
+        if (*value >= min + ({{function_info.c_type}})(-delta * factor)) {
             *value += delta * factor;  // delta отрицательный
         } else {
             *value = min;
@@ -63,8 +63,8 @@ void {{function_name}}(menu_context_t *ctx, menu_id_t id, int8_t delta) {
         return;
     }
 
-    // Вычисляем диапазон
-    uint32_t range = max - min + 1;
+    // Вычисляем диапазон (int64_t, т.к. min/max могут быть отрицательными для знаковых типов)
+    int64_t range = (int64_t)max - (int64_t)min + 1;
     
     // Вычисляем изменение с учётом множителя
     int64_t change = (int64_t)delta * (int64_t)factor;
@@ -84,7 +84,7 @@ void {{function_name}}(menu_context_t *ctx, menu_id_t id, int8_t delta) {
     }
     
     // Присваиваем новое значение
-    *value = (uint32_t)new_value;
+    *value = ({{function_info.c_type}})new_value;
 {% endif %}{# navigate #}
     if (*value != old_value) {
         ctx->dirty = true;

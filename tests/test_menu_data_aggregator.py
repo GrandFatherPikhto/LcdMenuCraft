@@ -37,13 +37,13 @@ def test_aggregator_caches_results(menu_flattener):
     assert aggregator.functions_by_type_role is aggregator.functions_by_type_role
 
 
-def test_processor_delegates_to_single_aggregator(monkeypatch, project_root):
+def test_processor_delegates_to_single_aggregator(monkeypatch, project_root, config_path):
     """MenuCraft exposes the aggregator and forwards every aggregation."""
     monkeypatch.chdir(project_root)
 
     from generate_menu.menucraft import MenuCraft
 
-    processor = MenuCraft("./config/config.yaml")
+    processor = MenuCraft(str(config_path))
 
     # One aggregator instance for the whole processor lifetime.
     assert processor.data is processor._aggregator
@@ -57,14 +57,14 @@ def test_processor_delegates_to_single_aggregator(monkeypatch, project_root):
     assert processor.functions_by_event_type is processor.data.functions_by_event_type
 
 
-def test_aggregator_matches_processor_results(monkeypatch, project_root):
+def test_aggregator_matches_processor_results(monkeypatch, project_root, config_path):
     """The aggregator over the same nodes yields identical structures."""
     monkeypatch.chdir(project_root)
 
     from generate_menu.menucraft import MenuCraft
     from generate_menu.menu_data_aggregator import MenuDataAggregator
 
-    processor = MenuCraft("./config/config.yaml")
+    processor = MenuCraft(str(config_path))
     # Use the processor's own nodes so embedded FlatNode objects match by
     # identity and full-dict comparison is valid.
     aggregator = MenuDataAggregator(processor._flat_nodes)
