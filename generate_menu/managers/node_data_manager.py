@@ -140,33 +140,6 @@ class NodeDataManager:
             return None
         return self.c_str_array(self.raw_values)
 
-    # Data validation
-    def validate_numeric_range(self) -> List[str]:
-        """Validates the numeric range."""
-        errors = []
-        if self.min is not None and self.max is not None:
-            if self.min > self.max:
-                errors.append(f"min ({self.min}) > max ({self.max})")
-            if self.default is not None and not (self.min <= self.default <= self.max):
-                errors.append(f"default ({self.default}) outside range [{self.min}, {self.max}]")
-        return errors
-
-    def validate_fixed_values(self) -> List[str]:
-        """Validates fixed values."""
-        errors = []
-        if self.values is not None and self.default_idx is not None:
-            if self.default_idx >= len(self.values):
-                errors.append(f"default_idx ({self.default_idx}) out of bounds for values array (size: {len(self.values)})")
-        if self.factors is not None and self.default_idx is not None:
-            if self.default_idx >= len(self.factors):
-                errors.append(f"default_idx ({self.default_idx}) out of bounds for factors array (size: {len(self.factors)})")
-        if self.raw_values is not None:
-            if self.values is None:
-                errors.append("raw_values is set but values is not")
-            elif len(self.raw_values) != len(self.values):
-                errors.append(f"raw_values length ({len(self.raw_values)}) != values length ({len(self.values)})")
-        return errors
-
     def get_data_summary(self) -> Dict[str, Any]:
         """Node data summary for debugging."""
         return {

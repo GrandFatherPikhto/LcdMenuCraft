@@ -308,13 +308,6 @@ class BaseFlatNode:
         """Access to the navigation manager."""
         return self._navigation_manager
 
-    def validate_data(self) -> List[str]:
-        """Validates node data."""
-        errors = []
-        errors.extend(self._data_manager.validate_numeric_range())
-        errors.extend(self._data_manager.validate_fixed_values())
-        return errors
-
     def validate_required_functions(self) -> List[Dict[str, str]]:
         """Checks that all required functions are generated."""
         if self._control_manager is None:

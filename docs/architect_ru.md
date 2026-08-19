@@ -101,11 +101,11 @@ MenuCraft/
 
 Базовый класс узла, собранный из менеджеров: данные, контролы, навигация, callbacks.
 Предоставляет высокоуровневые свойства для шаблонов и процессора
-(`controls`, `all_function_infos`, `validate_data`, `get_control_summary`, ...).
+(`controls`, `all_function_infos`, `get_control_summary`, ...).
 
 ### 2.6 Менеджеры
 
-- [`NodeDataManager`](../generate_menu/managers/node_data_manager.py:4) — значения, множители, `c_str_*`-хелперы, валидация числовых диапазонов/фиксированных значений, сводка данных.
+- [`NodeDataManager`](../generate_menu/managers/node_data_manager.py:4) — значения, множители, `c_str_*`-хелперы, сводка данных.
 - [`NodeControlManager`](../generate_menu/managers/node_control_manager.py:8) — строит контролы из role-правил, генерирует имена автоматических функций, проверяет обязательные функции.
 - [`NodeNavigationManager`](../generate_menu/managers/node_navigation_manager.py:5) — связи sibling/cyclic, свойства структуры дерева, цепочка sibling'ов, отладочный вывод.
 - [`CallbackManager`](../generate_menu/managers/callback_manager.py:5) — авто vs пользовательские callbacks, эффективные имена, сводки.
@@ -238,16 +238,15 @@ generation_files: files.yaml
 #### 🟡 B3. Кэшировать агрегации
 Считать производные свойства `MenuCraft` один раз; особенно актуально для больших деревьев.
 
-#### ✅ B4. Дублирование валидации — подключено, а не убрано
-[`MenuValidator._validate_item`](../generate_menu/menu_validator.py:63) (сырое дерево, идёт
-первым) и `NodeDataManager.validate_numeric_range/validate_fixed_values` (сплющенное дерево)
-всё ещё пересекаются, но второе больше не мёртвый код: `MenuCraft.__init__` теперь вызывает
-его через `_validate_flat_data()` сразу после flatten — оно ловит как минимум одну реальную
-дыру, которую `MenuValidator` не видит: `min > max` без `default`, за который можно было бы
-зацепиться. Оставлено как два прохода, а не схлопнуто в «единый источник правды», поскольку
-они работают на разных стадиях конвейера (до/после flatten), а ошибки `MenuValidator` на
-сыром dict уже прерывают выполнение раньше, чем сплющенный проход успел бы стать избыточным
-на невалидных данных.
+#### ✅ B4. Дублирование валидации — сведено в `MenuValidator`
+Валидация теперь живёт в одном месте: [`MenuValidator._validate_item`](../generate_menu/menu_validator.py:63),
+который работает на сыром дереве до flatten и именно его напрямую (без flatten) вызывает
+кнопка Validate в GUI. Сплющенный проход (`MenuCraft._validate_flat_data()`,
+`NodeDataManager.validate_numeric_range/validate_fixed_values`,
+`BaseFlatNode.validate_data()`) удалён как полностью избыточный, а единственная проверка,
+которую он ловил уникально — `min > max` без `default`, за который можно было бы зацепиться —
+перенесена в `MenuValidator` как `_validate_min_max` и теперь срабатывает независимо от
+наличия `default`.
 
 #### 🟡 B5. `pathlib.Path` везде
 Смешаны `os.path`, строки и `Path`. Привести всё к `pathlib.Path`.

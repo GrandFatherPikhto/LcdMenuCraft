@@ -81,6 +81,10 @@ class MenuValidator:
         if 'default' in item:
             errors.extend(self._validate_default_value(item))
         
+        # Validate the min/max range (independent of 'default')
+        if 'min' in item or 'max' in item:
+            errors.extend(self._validate_min_max(item))
+        
         # Validate factors and values
         if 'factors' in item:
             errors.extend(self._validate_factors(item))
@@ -107,6 +111,17 @@ class MenuValidator:
                 errors.append(_("default value {default} not in allowed values").format(
                     default=item['default']))
         
+        return errors
+
+    def _validate_min_max(self, item: Dict) -> List[str]:
+        """Validates that min is not greater than max (independent of default)."""
+        errors = []
+
+        if 'min' in item and 'max' in item:
+            if item['min'] > item['max']:
+                errors.append(_("min ({min}) > max ({max})").format(
+                    min=item['min'], max=item['max']))
+
         return errors
 
     def _validate_factors(self, item: Dict) -> List[str]:

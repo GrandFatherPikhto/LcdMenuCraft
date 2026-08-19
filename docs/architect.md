@@ -99,11 +99,11 @@ and wires up navigation: sibling links, parent/branch rules, cyclic wrapping
 
 Base node class composed of managers: data, control, navigation, callbacks.
 Exposes high-level properties used by templates and the processor
-(`controls`, `all_function_infos`, `validate_data`, `get_control_summary`, ...).
+(`controls`, `all_function_infos`, `get_control_summary`, ...).
 
 ### 2.6 Managers
 
-- [`NodeDataManager`](../generate_menu/managers/node_data_manager.py:4) — values, factors, `c_str_*` helpers, numeric/fixed validation, data summary.
+- [`NodeDataManager`](../generate_menu/managers/node_data_manager.py:4) — values, factors, `c_str_*` helpers, data summary.
 - [`NodeControlManager`](../generate_menu/managers/node_control_manager.py:8) — builds controls from role rules, generates automatic function names, validates required functions.
 - [`NodeNavigationManager`](../generate_menu/managers/node_navigation_manager.py:5) — sibling/cyclic links, tree structure properties, sibling chain, debug output.
 - [`CallbackManager`](../generate_menu/managers/callback_manager.py:5) — auto vs custom callbacks, effective callback names, summaries.
@@ -236,15 +236,14 @@ There are no tests (neither `pytest` nor `unittest`); debug `main()`s act as sub
 #### 🟡 B3. Cache aggregations
 Compute `MenuCraft` derived properties once; especially relevant for large menu trees.
 
-#### ✅ B4. Validation duplication — wired up, not removed
-[`MenuValidator._validate_item`](../generate_menu/menu_validator.py:63) (raw tree, runs first)
-and `NodeDataManager.validate_numeric_range/validate_fixed_values` (flattened tree) still
-overlap, but the latter is no longer dead code: `MenuCraft.__init__` now calls it via
-`_validate_flat_data()` right after flattening, because it catches at least one real gap
-`MenuValidator` doesn't — `min > max` with no `default` present to key off of. Kept as two
-passes rather than collapsed into one "single source of truth", since they run at different
-pipeline stages (pre-flatten vs. post-flatten) and MenuValidator's raw-dict errors already
-abort before the flattened pass would ever run redundantly on invalid input.
+#### ✅ B4. Validation duplication — consolidated into `MenuValidator`
+Validation now lives in a single place: [`MenuValidator._validate_item`](../generate_menu/menu_validator.py:63),
+which runs on the raw tree before flattening and is also what the GUI's Validate button
+calls directly (without flattening). The flattened-tree pass
+(`MenuCraft._validate_flat_data()`, `NodeDataManager.validate_numeric_range/validate_fixed_values`,
+`BaseFlatNode.validate_data()`) has been removed as fully redundant, and the one check it
+uniquely caught — `min > max` with no `default` present to key off of — was moved into
+`MenuValidator` as `_validate_min_max`, so it now fires regardless of `default`.
 
 #### 🟡 B5. `pathlib.Path` everywhere
 Mixed `os.path`, strings and `Path`. Standardize on `pathlib.Path`.

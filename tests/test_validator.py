@@ -89,6 +89,16 @@ def test_default_out_of_range(menu_config):
     assert any("out of range" in message for message in errors["n"])
 
 
+def test_min_greater_than_max_without_default(menu_config):
+    """min > max must be flagged even when no default is present to key off of."""
+    validator = _make_validator(menu_config)
+    items = [_item("n", title="N", type="ubyte", role="simple",
+                   min=100, max=10)]
+    errors = validator.validate(_make_menu(items))
+    assert "n" in errors
+    assert any("min (100) > max (10)" in message for message in errors["n"])
+
+
 def test_default_not_in_allowed_values(menu_config):
     validator = _make_validator(menu_config)
     items = [_item("f", title="F", type="string", role="fixed",

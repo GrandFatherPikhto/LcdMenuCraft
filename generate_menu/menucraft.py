@@ -42,30 +42,10 @@ class MenuCraft:
         self._flattener = MenuFlattener(self._config)
         self._flat_nodes = self._flattener.flatten()
 
-        data_errors = self._validate_flat_data()
-        if data_errors:
-            self._raise_validation_errors(data_errors)
-
         self._aggregator = MenuDataAggregator(self._flat_nodes)
 
         # Debug information about controls
         self._print_control_summary()
-
-    def _validate_flat_data(self) -> Dict[str, List[str]]:
-        """Validates numeric ranges and fixed/factor bounds on the flattened tree.
-
-        Runs after :class:`MenuValidator` (which checks the raw tree) and covers
-        what it doesn't: e.g. ``min > max`` with no ``default`` present to key
-        off of. See ``BaseFlatNode.validate_data()``.
-        """
-        errors = {}
-        for node in self._flat_nodes:
-            if node.id == 'root':
-                continue
-            node_errors = node.validate_data()
-            if node_errors:
-                errors[node.id] = node_errors
-        return errors
 
     def _raise_validation_errors(self, errors: Dict[str, List[str]]) -> None:
         logger.error("❌ " + _("Configuration contains errors:"))

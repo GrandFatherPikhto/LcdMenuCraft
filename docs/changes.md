@@ -32,15 +32,18 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/).
   `load_config_file` to use it — the only place in the codebase that reads
   YAML.
 
-### ✅ Flattened-tree validation wired up (was dead code)
+### ✅ Validation consolidated into a single `MenuValidator` pass
 
-- `NodeDataManager.validate_numeric_range()`/`validate_fixed_values()` (via
-  `BaseFlatNode.validate_data()`) were never called by anything —
-  `MenuCraft.__init__` now runs them across the flattened tree right after
-  `MenuFlattener.flatten()`, raising the same `ProcessorError` as
-  `MenuValidator`'s pre-flatten pass on failure. Catches at least one real
-  gap `MenuValidator` doesn't: `min > max` with no `default` present to key
-  off of. See [`docs/architect.md`](./architect.md) B4.
+- `min > max` is now checked in [`MenuValidator`](../generate_menu/menu_validator.py)
+  regardless of whether `default` is present — previously a node with
+  `min: 100, max: 10` and no `default` slipped past the raw-tree validator and
+  was only caught on the flattened tree. The GUI's Validate button (which calls
+  `MenuValidator` directly, without flattening) catches it too.
+- Removed the duplicated flattened-tree pass as fully redundant:
+  `MenuCraft._validate_flat_data()` (and its call in `MenuCraft.__init__`),
+  `NodeDataManager.validate_numeric_range()`/`validate_fixed_values()` and
+  `BaseFlatNode.validate_data()` are gone — the pipeline is back to a single
+  pre-flatten validation via `MenuValidator`.
 
 ### 📏 `menu_draw_pad_marker()` made public
 
@@ -64,9 +67,7 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/).
   and leaves `idx` unchanged if the value isn't found, rather than guessing.
   Falls back to `idx` when unset, so existing menus are unaffected.
 - Length-checked against `values` in [`MenuValidator`](../generate_menu/menu_validator.py)
-  (the validator actually wired into the pipeline — a matching check was also
-  added to `NodeDataManager.validate_fixed_values()`, but that method is
-  currently dead code, unreached by any caller).
+  (the only validator wired into the pipeline).
 - Exposed in the GUI node form ([`gui/node_form.py`](../gui/node_form.py)) as an
   optional "Raw values" list next to "Values" for `role: fixed`; emptying it
   removes the key rather than leaving `[]`. A generic "Tag" field was also

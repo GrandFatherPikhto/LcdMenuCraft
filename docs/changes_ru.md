@@ -33,15 +33,18 @@
   — как в core schema YAML 1.2), и `load_config_file` переключён на него —
   это единственное место в кодовой базе, где читается YAML.
 
-### ✅ Валидация сплющенного дерева подключена (была мёртвым кодом)
+### ✅ Валидация сведена в единый проход `MenuValidator`
 
-- `NodeDataManager.validate_numeric_range()`/`validate_fixed_values()` (через
-  `BaseFlatNode.validate_data()`) никем не вызывались — `MenuCraft.__init__`
-  теперь прогоняет их по сплющенному дереву сразу после
-  `MenuFlattener.flatten()`, поднимая тот же `ProcessorError`, что и
-  дофлэттенный проход `MenuValidator`, при ошибке. Ловит как минимум одну
-  реальную дыру, которую `MenuValidator` не видит: `min > max` без `default`,
-  за который можно было бы зацепиться. См. [`docs/architect_ru.md`](./architect_ru.md), B4.
+- `min > max` теперь проверяется в [`MenuValidator`](../generate_menu/menu_validator.py)
+  независимо от наличия `default` — раньше узел с `min: 100, max: 10` и без
+  `default` проскакивал валидатор сырого дерева и ловился только на сплющенном.
+  Кнопка Validate в GUI (которая вызывает `MenuValidator` напрямую, без flatten)
+  теперь тоже его ловит.
+- Удалён дублирующий сплющенный проход как полностью избыточный:
+  `MenuCraft._validate_flat_data()` (и его вызов в `MenuCraft.__init__`),
+  `NodeDataManager.validate_numeric_range()`/`validate_fixed_values()` и
+  `BaseFlatNode.validate_data()` — конвейер снова имеет одну проверку до flatten
+  через `MenuValidator`.
 
 ### 📏 `menu_draw_pad_marker()` стал публичным
 
@@ -67,9 +70,7 @@
   вместо угадывания. Если поле не задано — поведение как раньше, через `idx`,
   существующие меню не затрагиваются.
 - Длина сверяется с `values` в [`MenuValidator`](../generate_menu/menu_validator.py)
-  (это валидатор, реально подключённый к конвейеру — такая же проверка
-  добавлена и в `NodeDataManager.validate_fixed_values()`, но этот метод сейчас
-  мёртвый код, никем не вызывается).
+  (единственный валидатор, реально подключённый к конвейеру).
 - Выведено в форму GUI ([`gui/node_form.py`](../gui/node_form.py)) как
   необязательный список «Raw values» рядом с «Values» для `role: fixed`; при
   опустошении списка ключ удаляется целиком, а не остаётся `[]`. Заодно
