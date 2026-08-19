@@ -15,6 +15,7 @@ class NodeDataManager:
         self.default_idx = original_node.get("default_idx")
         self.factors = original_node.get("factors")
         self.values = original_node.get("values")
+        self.raw_values = original_node.get("raw_values")
         self.tag = original_node.get("tag")
         self._step = original_node.get("step")
         
@@ -132,6 +133,13 @@ class NodeDataManager:
             return None
         return self.c_str_array(self.values)
 
+    @property
+    def c_str_raw_values(self) -> Optional[str]:
+        """C representation of raw_values."""
+        if self.raw_values is None:
+            return None
+        return self.c_str_array(self.raw_values)
+
     # Data validation
     def validate_numeric_range(self) -> List[str]:
         """Validates the numeric range."""
@@ -152,6 +160,11 @@ class NodeDataManager:
         if self.factors is not None and self.default_idx is not None:
             if self.default_idx >= len(self.factors):
                 errors.append(f"default_idx ({self.default_idx}) out of bounds for factors array (size: {len(self.factors)})")
+        if self.raw_values is not None:
+            if self.values is None:
+                errors.append("raw_values is set but values is not")
+            elif len(self.raw_values) != len(self.values):
+                errors.append(f"raw_values length ({len(self.raw_values)}) != values length ({len(self.values)})")
         return errors
 
     def get_data_summary(self) -> Dict[str, Any]:

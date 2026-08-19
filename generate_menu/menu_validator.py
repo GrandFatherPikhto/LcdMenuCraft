@@ -86,7 +86,9 @@ class MenuValidator:
             errors.extend(self._validate_factors(item))
         if 'values' in item:
             errors.extend(self._validate_values(item))
-        
+        if 'raw_values' in item:
+            errors.extend(self._validate_raw_values(item))
+
         return errors
 
     def _validate_default_value(self, item: Dict) -> List[str]:
@@ -124,6 +126,18 @@ class MenuValidator:
         if 'default_idx' in item and item['default_idx'] >= len(item['values']):
             errors.append(_("default_idx {idx} out of bounds for values array").format(
                 idx=item['default_idx']))
-        
+
+        return errors
+
+    def _validate_raw_values(self, item: Dict) -> List[str]:
+        """Validates raw_values."""
+        errors = []
+
+        if 'values' not in item:
+            errors.append(_("raw_values is set but values is not"))
+        elif len(item['raw_values']) != len(item['values']):
+            errors.append(_("raw_values length ({raw_len}) != values length ({values_len})").format(
+                raw_len=len(item['raw_values']), values_len=len(item['values'])))
+
         return errors
 

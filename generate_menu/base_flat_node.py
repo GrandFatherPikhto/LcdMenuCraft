@@ -107,6 +107,14 @@ class BaseFlatNode:
         return self._data_manager.values
 
     @property
+    def raw_values(self):
+        return self._data_manager.raw_values
+
+    @property
+    def c_str_raw_values(self) -> Optional[str]:
+        return self._data_manager.c_str_raw_values
+
+    @property
     def step(self) -> int:
         return self._data_manager.step
 

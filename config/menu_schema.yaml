@@ -125,6 +125,15 @@ $defs:
         items:
           type: [string, number]
         minItems: 1
+      raw_values:
+        type: array
+        items:
+          type: integer
+        minItems: 1
+        description: >
+          Optional, role: fixed only. Actual values corresponding 1:1 to `values`
+          by index. If set, menu_get_int32()/menu_set_int32() operate on this
+          array instead of the raw idx. Must be the same length as `values`.
       default_idx:
         type: integer
         minimum: 0

@@ -48,6 +48,7 @@ typedef struct s_{{category_name}}_t {
     uint8_t count;
     uint8_t default_idx;
     {{category.c_type}} *values; {# c_type уже содержит const для строк (const char*) #}
+    const int32_t *raw_values; ///< Optional, NULL if not set in menu.yaml. 1:1 with values by index.
 {% endif %}
 
 } {{category_name}}_config_t;

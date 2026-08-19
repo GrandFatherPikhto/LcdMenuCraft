@@ -15,6 +15,10 @@ static const {{leaf.c_type}} s_factors_{{leaf_id}}[] = { {{leaf.c_str_factors}} 
 static const char *s_values_str_{{leaf_id}}[] = { {{ leaf.c_str_values }} };
 {% endfor %}
 
+{% for leaf_id, leaf in leafs.items() if leaf.c_str_raw_values is not none %}
+static const int32_t s_raw_values_{{leaf_id}}[] = { {{ leaf.c_str_raw_values }} };
+{% endfor %}
+
 static const menu_node_config_t s_menu_config[] = {
 {% for leaf_id, leaf in leafs.items() %}
     [MENU_ID_{{leaf_id.upper()}}] = {        
@@ -45,7 +49,8 @@ static const menu_node_config_t s_menu_config[] = {
             {% elif leaf.role == 'fixed' %}
             .default_idx = {{ leaf.values_default_idx }},
             .count = {{ leaf.values_count }},
-            .values = s_values_str_{{ leaf_id }}
+            .values = s_values_str_{{ leaf_id }},
+            .raw_values = {% if leaf.c_str_raw_values is not none %}s_raw_values_{{ leaf_id }}{% else %}NULL{% endif %}
             {% endif %}
         }
         {% else %}
