@@ -2,10 +2,10 @@ void {{function_name}}(menu_context_t *ctx, menu_id_t id) {
     {{function_info.c_type}} max = ctx->configs[id].data.{{function_info.category}}.max;
     {{function_info.c_type}} value = ctx->values[id].data.{{function_info.category}}.value;
 {% if function_info.type in ["byte", "word", "dword"] %}
-    snprintf(ctx->value_buf, LCD_STRING_LEN, "%d/%d", value, max);
+    snprintf(ctx->value_buf, LCD_STRING_LEN, "%ld/%ld", (long)value, (long)max);
     menu_draw_line_marker(ctx);
 {% elif function_info.type in ["ubyte", "uword", "udword"]%}
-    snprintf(ctx->value_buf, LCD_STRING_LEN, "%u/%u", value, max);
+    snprintf(ctx->value_buf, LCD_STRING_LEN, "%lu/%lu", (unsigned long)value, (unsigned long)max);
     menu_draw_line_marker(ctx);
 {% elif function_info.type == "float" %}
     snprintf(ctx->value_buf, LCD_STRING_LEN, "%3.3f/%3.3f", value, max);

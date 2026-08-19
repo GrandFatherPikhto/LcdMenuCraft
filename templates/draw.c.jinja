@@ -27,6 +27,7 @@ bool menu_draw_update(menu_context_t *ctx, menu_id_t id) {
 
     ctx->dirty = false;
     ctx->update = true;
+    return true;
 }
 
 /* Длина одной строки дисплея: LCD_STRING_LEN — общий буфер на LCD_NUM_STRINGS строк. */
@@ -46,7 +47,9 @@ static void menu_draw_line_marker(menu_context_t *ctx) {
 }
 
 {% for function_name, function_info in functions.items() if function_info.event_type == "draw_value" %}
-{% if function_info.role == "simple" %}
+{% if function_info.source == "custom" %}
+{# Custom draw_value_cb: declaration only, body is hand-written -- regardless of role. #}
+{% elif function_info.role == "simple" %}
 {% include "draw_simple.c.jinja" %}
 {% elif function_info.role == "factor" %}
 {% include "draw_factor.c.jinja" %}

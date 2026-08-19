@@ -18,6 +18,12 @@ typedef struct menu_callback menu_callback_t;
 void {{function_name}}(menu_context_t *ctx, menu_id_t id);
 {% elif function_info.event_type == "position" %}
 void {{function_name}}(menu_context_t *ctx, menu_id_t id, int8_t delta);
+{% elif function_info.event_type == "double_click" %}
+void {{function_name}}(menu_context_t *ctx, menu_id_t id);
+{% elif function_info.event_type == "long_click" %}
+void {{function_name}}(menu_context_t *ctx, menu_id_t id);
+{% elif function_info.event_type == "event" %}
+void {{function_name}}(menu_context_t *ctx, menu_id_t id, menu_event_t event);
 {% endif %}
 {% endfor %}
 

@@ -4,10 +4,10 @@ void {{function_name}}(menu_context_t *ctx, menu_id_t id) {
     {{function_info.c_type}} factor = ctx->configs[id].data.{{function_info.category}}.factors[idx];
 
 {% if function_info.type in ["byte", "word", "dword"] %}
-    snprintf(ctx->value_buf, LCD_STRING_LEN, "%d (x%d)", value, factor);
+    snprintf(ctx->value_buf, LCD_STRING_LEN, "%ld (x%ld)", (long)value, (long)factor);
     menu_draw_line_marker(ctx);
 {% elif function_info.type in ["ubyte", "uword", "udword"]%}
-    snprintf(ctx->value_buf, LCD_STRING_LEN, "%u (x%u)", value, factor);
+    snprintf(ctx->value_buf, LCD_STRING_LEN, "%lu (x%lu)", (unsigned long)value, (unsigned long)factor);
     menu_draw_line_marker(ctx);
 {% elif function_info.type == "float" %}
     snprintf(ctx->value_buf, LCD_STRING_LEN, "%2.2f (x%2.2f)", value, factor);
