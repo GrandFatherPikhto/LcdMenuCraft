@@ -11,12 +11,14 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QSplitter,
+    QTabWidget,
     QToolBar,
 )
 
 from .document import DocumentError, MenuDocument
 from .log_panel import LogPanel
 from .node_form import NodeForm
+from .project_form import ProjectForm
 from .tree_panel import TreePanel
 
 logger = logging.getLogger("gui.main_window")
@@ -54,12 +56,17 @@ class MainWindow(QMainWindow):
 
         self.tree_panel = TreePanel(document, self)
         self.node_form = NodeForm(document, self)
+        self.project_form = ProjectForm(document, self)
         self.log_panel = LogPanel(self)
         self.tree_panel.nodeSelected.connect(self.node_form.set_node)
 
+        right_tabs = QTabWidget(self)
+        right_tabs.addTab(self.node_form, "Node")
+        right_tabs.addTab(self.project_form, "Project")
+
         top_splitter = QSplitter(Qt.Orientation.Horizontal, self)
         top_splitter.addWidget(self.tree_panel)
-        top_splitter.addWidget(self.node_form)
+        top_splitter.addWidget(right_tabs)
         top_splitter.setStretchFactor(0, 1)
         top_splitter.setStretchFactor(1, 1)
 
@@ -85,6 +92,9 @@ class MainWindow(QMainWindow):
         menu_bar = self.menuBar()
 
         file_menu = menu_bar.addMenu("File")
+        new_action = QAction("New", self)
+        new_action.setShortcut("Ctrl+N")
+        new_action.triggered.connect(self.new_file)
         open_action = QAction("Open...", self)
         open_action.triggered.connect(self.open_file)
         save_action = QAction("Save", self)
@@ -96,7 +106,7 @@ class MainWindow(QMainWindow):
         output_dir_action.triggered.connect(self.choose_output_directory)
         quit_action = QAction("Quit", self)
         quit_action.triggered.connect(self.close)
-        for action in (open_action, save_action, save_as_action, output_dir_action, quit_action):
+        for action in (new_action, open_action, save_action, save_as_action, output_dir_action, quit_action):
             file_menu.addAction(action)
             toolbar.addAction(action)
 
@@ -110,6 +120,20 @@ class MainWindow(QMainWindow):
             toolbar.addAction(action)
 
     # -- document actions -------------------------------------------------------
+    def new_file(self) -> None:
+        if not self._confirm_discard_changes():
+            return
+        try:
+            self._document.new()
+        except DocumentError as e:
+            QMessageBox.critical(self, "New failed", str(e))
+            return
+        self.tree_panel.refresh()
+        self.node_form.set_node(None)
+        self.project_form.refresh()
+        self.refresh_status()
+        logger.info("Started a new menu document")
+
     def open_file(self) -> None:
         if not self._confirm_discard_changes():
             return
@@ -126,6 +150,7 @@ class MainWindow(QMainWindow):
             return
         self.tree_panel.refresh()
         self.node_form.set_node(None)
+        self.project_form.refresh()
         self.refresh_status()
         logger.info("Opened %s", path)
 
@@ -167,6 +192,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Could not set output directory", str(e))
             return
         self._settings.set("last_output_directory", directory)
+        self.project_form.refresh()
         self.refresh_status()
         logger.info("Output directory set to %s", directory)
 

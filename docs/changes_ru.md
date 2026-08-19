@@ -5,6 +5,44 @@
 
 ## [Unreleased]
 
+### 🖥️ GUI: сценарий «New» + вкладка «Project»
+
+- Добавлен `File > New` (`Ctrl+N`) в [`gui/main_window.py`](../gui/main_window.py):
+  создаёт новый, минимальный, несохранённый документ. Поскольку `MenuConfig`
+  умеет загружаться только из реального файла, это пишет небольшой валидный
+  по схеме шаблон во временный файл GUI (`menu/.new.yaml`, в `.gitignore`) и
+  открывает его, а затем сбрасывает `current_path`, чтобы `Save`/`Generate`
+  по-прежнему уходили в `Save As...`, а не молча писали обратно во временный
+  файл.
+- Добавлена вкладка «Project» ([`gui/project_form.py`](../gui/project_form.py))
+  рядом с формой узла — для собственного блока `config:` документа: `version`,
+  `author`, умолчания навигации/контрола, `output_directory`,
+  `include_files`, `wrap_by_name_functions`, `enable_node_names`. Использует
+  тот же in-memory dict, что и тулбарное действие «Set output directory...»,
+  так что оба остаются синхронными.
+
+### 🔒 Разбор булевых значений YAML сужен до `true`/`false`
+
+- `generate_menu/common.py::load_config_file` использовал обычный
+  `yaml.safe_load`, который следует YAML 1.1 и молча превращает нескавыченные
+  `yes`/`no`/`on`/`off` (в любом регистре) в Python bool — так `values: [Off, On]`
+  для узла с ролью `fixed` становился `[False, True]` ещё до того, как
+  валидация схемы вообще увидела строку, и проявлялось это лишь как невнятная
+  `False is not of type 'string', 'number'`. Добавлен `_StrictBoolLoader`
+  (подкласс `yaml.SafeLoader`, чей резолвер bool matчит только `true`/`false`
+  — как в core schema YAML 1.2), и `load_config_file` переключён на него —
+  это единственное место в кодовой базе, где читается YAML.
+
+### ✅ Валидация сплющенного дерева подключена (была мёртвым кодом)
+
+- `NodeDataManager.validate_numeric_range()`/`validate_fixed_values()` (через
+  `BaseFlatNode.validate_data()`) никем не вызывались — `MenuCraft.__init__`
+  теперь прогоняет их по сплющенному дереву сразу после
+  `MenuFlattener.flatten()`, поднимая тот же `ProcessorError`, что и
+  дофлэттенный проход `MenuValidator`, при ошибке. Ловит как минимум одну
+  реальную дыру, которую `MenuValidator` не видит: `min > max` без `default`,
+  за который можно было бы зацепиться. См. [`docs/architect_ru.md`](./architect_ru.md), B4.
+
 ### 📏 `menu_draw_pad_marker()` стал публичным
 
 - Хелпер паддинга строки и маркера состояния в

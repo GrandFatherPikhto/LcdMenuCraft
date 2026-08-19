@@ -42,6 +42,7 @@ def main(argv=None) -> int:
     try:
         document.open(menu_path)
         window.tree_panel.refresh()
+        window.project_form.refresh()
     except Exception:
         logger.exception("Could not open %s", menu_path)
 

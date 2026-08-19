@@ -238,10 +238,16 @@ generation_files: files.yaml
 #### 🟡 B3. Кэшировать агрегации
 Считать производные свойства `MenuCraft` один раз; особенно актуально для больших деревьев.
 
-#### 🟡 B4. Убрать дублирование валидации
-[`MenuValidator._validate_item`](../generate_menu/menu_validator.py:63) дублирует логику из
-`NodeDataManager.validate_numeric_range/validate_fixed_values`. Единый источник правды —
-правила из `config/menu_data.yaml`.
+#### ✅ B4. Дублирование валидации — подключено, а не убрано
+[`MenuValidator._validate_item`](../generate_menu/menu_validator.py:63) (сырое дерево, идёт
+первым) и `NodeDataManager.validate_numeric_range/validate_fixed_values` (сплющенное дерево)
+всё ещё пересекаются, но второе больше не мёртвый код: `MenuCraft.__init__` теперь вызывает
+его через `_validate_flat_data()` сразу после flatten — оно ловит как минимум одну реальную
+дыру, которую `MenuValidator` не видит: `min > max` без `default`, за который можно было бы
+зацепиться. Оставлено как два прохода, а не схлопнуто в «единый источник правды», поскольку
+они работают на разных стадиях конвейера (до/после flatten), а ошибки `MenuValidator` на
+сыром dict уже прерывают выполнение раньше, чем сплющенный проход успел бы стать избыточным
+на невалидных данных.
 
 #### 🟡 B5. `pathlib.Path` везде
 Смешаны `os.path`, строки и `Path`. Привести всё к `pathlib.Path`.

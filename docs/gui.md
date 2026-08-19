@@ -57,6 +57,15 @@ On startup the GUI opens the menu file wired into
   [`tag`/`raw_values`](./jinja_templates.md#33-node-config-menuconfighoutputincludemenuconfigh)
   in the generated-code reference. Emptying the Raw values list removes the
   key entirely rather than leaving `[]` behind.
+- **Node / Project tabs** (right side) — the node form lives in a "Node" tab;
+  a sibling "Project" tab ([`gui/project_form.py`](../gui/project_form.py))
+  edits the document's own `config:` block (`version`, `author`, the
+  navigate/control defaults, `output_directory`, `include_files`,
+  `wrap_by_name_functions`, `enable_node_names`) — the fields that apply to
+  the whole tree, not to a selected node. Both write into the same in-memory
+  `MenuConfig.menu_data` dict `document.tree` is a view into, so edits from
+  either tab, or from the "Set output directory..." toolbar action, stay in
+  sync without any extra plumbing.
 - **Log panel** (bottom, [`gui/log_panel.py`](../gui/log_panel.py)) — every
   `logger.error/info/debug(...)` call already made throughout
   `menucraft.py`/`menu_generator.py`/`menu_flattener.py`/`common.py` shows up
@@ -69,6 +78,7 @@ On startup the GUI opens the menu file wired into
 
 | Action | Effect |
 |--------|--------|
+| New | Starts a fresh, minimal, unsaved document (`Ctrl+N`) — see [§2](#2-layout) |
 | Open... | Loads a different menu YAML file, replacing the current document |
 | Save / Save As... | Writes the current tree back to YAML (`Ctrl+S` for Save). See [§5](#5-known-limitations) for what is not preserved. |
 | Set output directory... | Writes into `config.output_directory` **inside the open menu file itself** — the same field `generate_menu.py` reads |
@@ -76,6 +86,14 @@ On startup the GUI opens the menu file wired into
 | Generate C files | Replicates `cli.py`'s exact sequence (`MenuCraft` → `validate_required_functions()` gate → `MenuGenerator`) on a background `QThread`, so real Jinja2 rendering + file I/O never freezes the window |
 
 Closing the window with unsaved edits prompts Save / Discard / Cancel.
+
+`New` faces the same constraint as `Generate` (see [§4](#4-how-generate-stays-safe-for-configconfigyaml)):
+`MenuConfig` only ever loads from a real file, so there's no way to hand it a
+purely in-memory empty tree. It writes a minimal, schema-valid document to a
+GUI-owned scratch file (`menu/.new.yaml`, gitignored) and opens that, then
+clears the document's "current path" so `Save`/`Generate` still treat it as
+unsaved and route through `Save As...` instead of silently writing back to
+the scratch file.
 
 ## 4. How Generate stays safe for `config/config.yaml`
 
@@ -105,8 +123,6 @@ required callback is missing) → `MenuGenerator(shadow_config, processor=...)`.
   are not preserved** across a save. Nothing in the current feature set needs
   round-trip formatting, so this wasn't solved with a comment-preserving YAML
   library (e.g. `ruamel.yaml`) — worth revisiting if that becomes a problem.
-- There is no "New menu" flow — the GUI always opens an existing YAML file (by
-  default, the one wired into `config/config.yaml`).
 
 ## 6. Settings
 

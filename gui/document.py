@@ -36,6 +36,19 @@ logger = logging.getLogger("gui.document")
 #: whichever file the GUI currently has open.
 SHADOW_CONFIG_KEYS = ("menu_schema", "data_rules", "generation_files", "flatten")
 
+#: Minimal, schema-valid document written by ``MenuDocument.new()``.
+NEW_DOCUMENT_TEMPLATE = {
+    "config": {
+        "version": "1.0",
+        "default_navigate": "limit",
+        "default_control": "position",
+        "default_branch_navigate": "cyclic",
+        "root_navigate": "cyclic",
+        "output_directory": "./output/",
+    },
+    "menu": [],
+}
+
 
 class DocumentError(Exception):
     """Raised for document-level problems (open/save/generate) meant for the GUI."""
@@ -91,6 +104,24 @@ class MenuDocument:
             raise DocumentError(str(e)) from e
         self._menu_data_rules = MenuData(self._config)
         self._current_path = path
+        self._dirty = False
+
+    def new(self) -> None:
+        """Starts a fresh, minimal, unsaved menu document.
+
+        There is no way to hand ``MenuConfig`` an in-memory tree (see the
+        module docstring), so this writes ``NEW_DOCUMENT_TEMPLATE`` to a
+        GUI-owned scratch file and opens that -- then clears ``current_path``
+        so ``save()``/``generate()`` still treat this as unsaved and route
+        through "Save As", instead of quietly overwriting the scratch file.
+        """
+        scratch_path = self._real_config_path.parent.parent / "menu" / ".new.yaml"
+        scratch_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(scratch_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(NEW_DOCUMENT_TEMPLATE, f, allow_unicode=True, sort_keys=False)
+
+        self.open(scratch_path)
+        self._current_path = None
         self._dirty = False
 
     def save(self, path: Optional[Path] = None) -> Path:

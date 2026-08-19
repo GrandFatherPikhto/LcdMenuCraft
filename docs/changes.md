@@ -5,6 +5,43 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### 🖥️ GUI: "New" document flow + "Project" tab
+
+- Added `File > New` (`Ctrl+N`) to [`gui/main_window.py`](../gui/main_window.py):
+  starts a fresh, minimal, unsaved document. Since `MenuConfig` only ever
+  loads from a real file, this writes a small schema-valid template to a
+  GUI-owned scratch file (`menu/.new.yaml`, gitignored) and opens that, then
+  clears `current_path` so `Save`/`Generate` still route through `Save As...`
+  instead of quietly writing back to the scratch file.
+- Added a "Project" tab ([`gui/project_form.py`](../gui/project_form.py))
+  alongside the node form, for the document's own `config:` block —
+  `version`, `author`, the navigate/control defaults, `output_directory`,
+  `include_files`, `wrap_by_name_functions`, `enable_node_names`. Shares the
+  same in-memory dict as the "Set output directory..." toolbar action, so
+  both stay in sync.
+
+### 🔒 YAML boolean parsing narrowed to `true`/`false`
+
+- `generate_menu/common.py::load_config_file` used plain `yaml.safe_load`,
+  which follows YAML 1.1 and silently turns unquoted `yes`/`no`/`on`/`off`
+  (any case) into Python booleans — so `values: [Off, On]` on a `fixed`-role
+  node became `[False, True]` before schema validation ever saw a string,
+  surfacing only as a confusing `False is not of type 'string', 'number'`.
+  Added `_StrictBoolLoader` (a `yaml.SafeLoader` subclass whose bool resolver
+  only matches `true`/`false`, i.e. the YAML 1.2 core schema) and switched
+  `load_config_file` to use it — the only place in the codebase that reads
+  YAML.
+
+### ✅ Flattened-tree validation wired up (was dead code)
+
+- `NodeDataManager.validate_numeric_range()`/`validate_fixed_values()` (via
+  `BaseFlatNode.validate_data()`) were never called by anything —
+  `MenuCraft.__init__` now runs them across the flattened tree right after
+  `MenuFlattener.flatten()`, raising the same `ProcessorError` as
+  `MenuValidator`'s pre-flatten pass on failure. Catches at least one real
+  gap `MenuValidator` doesn't: `min > max` with no `default` present to key
+  off of. See [`docs/architect.md`](./architect.md) B4.
+
 ### 📏 `menu_draw_pad_marker()` made public
 
 - The line-padding/state-marker helper in [`draw.c.jinja`](../templates/draw.c.jinja)

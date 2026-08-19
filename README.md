@@ -243,11 +243,12 @@ python gui.py
 
 It's a thin wrapper around the same pipeline described above — a tree view plus a
 property form for the selected node (which fields appear depends on the node's
-`type`/`role`, following the same rules from `config/menu_data.yaml`), an explicit
-**Validate** button, and a **Generate C files** button that runs the real
-`MenuGenerator` on a background thread. A log panel at the bottom shows everything
-the backend already logs, with search and copy. See [docs/gui.md](docs/gui.md) for
-the full walkthrough, including how it keeps `config/config.yaml` untouched while
+`type`/`role`, following the same rules from `config/menu_data.yaml`), a sibling
+**Project** tab for the document's own `config:` block, **File > New** for a
+fresh document, an explicit **Validate** button, and a **Generate C files**
+button that runs the real `MenuGenerator` on a background thread. A log panel
+at the bottom shows everything the backend already logs, with search and copy.
+See [docs/gui.md](docs/gui.md) for the full walkthrough, including how it keeps `config/config.yaml` untouched while
 generating.
 
 ## Generated files

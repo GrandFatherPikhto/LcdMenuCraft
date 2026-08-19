@@ -236,10 +236,15 @@ There are no tests (neither `pytest` nor `unittest`); debug `main()`s act as sub
 #### 🟡 B3. Cache aggregations
 Compute `MenuCraft` derived properties once; especially relevant for large menu trees.
 
-#### 🟡 B4. Remove validation duplication
-[`MenuValidator._validate_item`](../generate_menu/menu_validator.py:63) duplicates logic from
-`NodeDataManager.validate_numeric_range/validate_fixed_values`. Single source of truth —
-rules from `config/menu_data.yaml`.
+#### ✅ B4. Validation duplication — wired up, not removed
+[`MenuValidator._validate_item`](../generate_menu/menu_validator.py:63) (raw tree, runs first)
+and `NodeDataManager.validate_numeric_range/validate_fixed_values` (flattened tree) still
+overlap, but the latter is no longer dead code: `MenuCraft.__init__` now calls it via
+`_validate_flat_data()` right after flattening, because it catches at least one real gap
+`MenuValidator` doesn't — `min > max` with no `default` present to key off of. Kept as two
+passes rather than collapsed into one "single source of truth", since they run at different
+pipeline stages (pre-flatten vs. post-flatten) and MenuValidator's raw-dict errors already
+abort before the flattened pass would ever run redundantly on invalid input.
 
 #### 🟡 B5. `pathlib.Path` everywhere
 Mixed `os.path`, strings and `Path`. Standardize on `pathlib.Path`.

@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Dict, Set, List, Optional, Any, Union
 
@@ -12,6 +13,31 @@ try:
     import yaml
 except ImportError:  # pragma: no cover
     yaml = None
+
+
+if yaml is not None:
+    class _StrictBoolLoader(yaml.SafeLoader):
+        """``SafeLoader`` that only resolves ``true``/``false`` as booleans.
+
+        PyYAML's default resolver follows YAML 1.1 and also treats
+        ``y``/``n``/``yes``/``no``/``on``/``off`` (any case) as booleans, so an
+        unquoted ``values: [Off, On]`` in a menu tree silently becomes
+        ``[False, True]`` -- the string is gone before schema validation ever
+        sees it. This narrows the implicit bool resolver to ``true``/``false``
+        (YAML 1.2 core schema), leaving the extra words as plain strings.
+        """
+
+    _StrictBoolLoader.yaml_implicit_resolvers = {
+        first: [(tag, regexp) for tag, regexp in resolvers if tag != "tag:yaml.org,2002:bool"]
+        for first, resolvers in yaml.SafeLoader.yaml_implicit_resolvers.items()
+    }
+    _StrictBoolLoader.add_implicit_resolver(
+        "tag:yaml.org,2002:bool",
+        re.compile(r"^(?:true|True|TRUE|false|False|FALSE)$"),
+        list("tTfF"),
+    )
+else:  # pragma: no cover
+    _StrictBoolLoader = None
 
 
 class ConfigLoadError(Exception):
@@ -30,7 +56,8 @@ def load_config_file(file_path: Union[str, Path]) -> Any:
 
     The format is detected from the file extension:
     - ``.json`` → json.load
-    - ``.yaml`` / ``.yml`` → yaml.safe_load
+    - ``.yaml`` / ``.yml`` → yaml.load with :class:`_StrictBoolLoader` (only
+      ``true``/``false`` resolve as booleans, unlike plain ``safe_load``)
 
     Args:
         file_path: path to the configuration file.
@@ -55,7 +82,7 @@ def load_config_file(file_path: Union[str, Path]) -> Any:
                     raise ConfigLoadError(
                         _("PyYAML is not installed. Run: pip install PyYAML"), path
                     )
-                data = yaml.safe_load(f)
+                data = yaml.load(f, Loader=_StrictBoolLoader)
             elif suffix == ".json":
                 data = json.load(f)
             else:
