@@ -60,3 +60,5 @@ menu/.new.yaml
 gui_settings.json
 
 init.sh
+
+techdocs/**
