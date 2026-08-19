@@ -218,15 +218,21 @@ for (menu_id_t id = 0; id < MENU_ID_COUNT; id++) {
    `simple`/`factor`/`fixed`, or your own for `callback` nodes);
 4. for a **branch** just writes `>` into `value_buf`.
 
-A helper `menu_draw_line_marker()` appends a state marker at the **right edge** of the
-line: `>` in navigation, `*` while editing. The marker column is derived, not
-hard-coded:
+A public helper, `menu_draw_pad_marker(ctx)` ([`menu_draw.h`](../output/include/menu_draw.h)),
+pads `value_buf` and appends a state marker at the **right edge** of the line:
+`>` in navigation, `*` while editing. It measures `strlen(ctx->value_buf)`
+itself, so callers never need to know the line width. The marker column is
+derived, not hard-coded:
 
 ```c
 #define MENU_LINE_LEN (LCD_STRING_LEN / LCD_NUM_STRINGS)   // 32 / 2 = 16
 ```
 
-so it stays correct if the display or `LCD_STRING_LEN` changes.
+so it stays correct if the display or `LCD_STRING_LEN` changes. Being public
+(it used to be `static`), it's meant to be called directly from a custom
+`draw_value_cb`, instead of hand-copying the padding/marker logic per project —
+that duplication is exactly what caused it to silently drift from the
+generator in the first place.
 
 ---
 

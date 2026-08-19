@@ -5,6 +5,18 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### 📏 `menu_draw_pad_marker()` made public
+
+- The line-padding/state-marker helper in [`draw.c.jinja`](../templates/draw.c.jinja)
+  was `static` and undeclared, so any custom `draw_value_cb` had to hand-copy its
+  padding/marker logic — found via a real duplicate (`draw_value_marker()`) in
+  HiPIMS_Menu's glue code, independently reimplementing it against a hardcoded
+  row length that would silently drift if `MENU_LINE_LEN` or the marker
+  characters ever changed. Renamed to `menu_draw_pad_marker(ctx)`, dropped
+  `static`, declared in [`draw.h.jinja`](../templates/draw.h.jinja) — same
+  simple signature (measures `strlen(ctx->value_buf)` itself), now callable
+  directly from custom callbacks instead of being reimplemented per project.
+
 ### 🔢 `raw_values` for `role: fixed`
 
 - Added an optional `raw_values` array on `fixed`-role nodes, parallel to

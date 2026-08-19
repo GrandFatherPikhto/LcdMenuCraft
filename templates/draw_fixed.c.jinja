@@ -3,16 +3,16 @@ void {{function_name}}(menu_context_t *ctx, menu_id_t id) {
     {{function_info.c_type}} value = ctx->configs[id].data.{{function_info.category}}.values[idx];
 {% if function_info.type in ["byte", "word", "dword"] %}
     snprintf(ctx->value_buf, LCD_STRING_LEN, "%ld", (long)value);
-    menu_draw_line_marker(ctx);
+    menu_draw_pad_marker(ctx);
 {% elif function_info.type in ["ubyte", "uword", "udword"]%}
     snprintf(ctx->value_buf, LCD_STRING_LEN, "%lu", (unsigned long)value);
-    menu_draw_line_marker(ctx);
+    menu_draw_pad_marker(ctx);
 {% elif function_info.type == "float" %}
     snprintf(ctx->value_buf, LCD_STRING_LEN, "%2.2f", value);
-    menu_draw_line_marker(ctx);
+    menu_draw_pad_marker(ctx);
 {% elif function_info.type == "string" %}
     strncpy(ctx->value_buf, value, LCD_STRING_LEN - 1);
     ctx->value_buf[LCD_STRING_LEN - 1] = '\0';
-    menu_draw_line_marker(ctx);
+    menu_draw_pad_marker(ctx);
 {% endif %}{# type #}
 }

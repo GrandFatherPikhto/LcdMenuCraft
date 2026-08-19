@@ -5,12 +5,12 @@ void {{function_name}}(menu_context_t *ctx, menu_id_t id) {
 
 {% if function_info.type in ["byte", "word", "dword"] %}
     snprintf(ctx->value_buf, LCD_STRING_LEN, "%ld (x%ld)", (long)value, (long)factor);
-    menu_draw_line_marker(ctx);
+    menu_draw_pad_marker(ctx);
 {% elif function_info.type in ["ubyte", "uword", "udword"]%}
     snprintf(ctx->value_buf, LCD_STRING_LEN, "%lu (x%lu)", (unsigned long)value, (unsigned long)factor);
-    menu_draw_line_marker(ctx);
+    menu_draw_pad_marker(ctx);
 {% elif function_info.type == "float" %}
     snprintf(ctx->value_buf, LCD_STRING_LEN, "%2.2f (x%2.2f)", value, factor);
-    menu_draw_line_marker(ctx);
+    menu_draw_pad_marker(ctx);
 {% endif %}
 }
