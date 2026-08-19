@@ -53,7 +53,12 @@ python -m gui
   [`config/menu_data.yaml`](../config/menu_data.yaml) через `MenuData`.
   Контролы роли, помеченные как `required: true` (например, `click`/`position`
   у роли `factor`), показываются предвыбранными и заблокированными — это чисто
-  информационно: простой просмотр узла ничего в него не записывает.
+  информационно: простой просмотр узла ничего в него не записывает. Два поля не
+  зависят от роли напрямую: необязательный **Tag** (у любого листа) и
+  необязательный список **Raw values**, показываемый только для `role: fixed`,
+  параллельно **Values** — см. [`tag`/`raw_values`](./jinja_templates_ru.md#33-конфигурация-узла-menuconfighoutputincludemenuconfigh)
+  в справочнике по генерируемому коду. Если список Raw values опустошить,
+  ключ удаляется целиком, а не остаётся `[]`.
 - **Панель логов** (снизу, [`gui/log_panel.py`](../gui/log_panel.py)) — сюда в
   реальном времени попадают все вызовы `logger.error/info/debug(...)`, которые и
   так уже делают `menucraft.py`/`menu_generator.py`/`menu_flattener.py`/`common.py`,

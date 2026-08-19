@@ -46,7 +46,7 @@ CALLBACK_FIELDS = (
 #: Value-field keys owned by each role; used to strip stale fields on role change.
 ROLE_VALUE_KEYS = {
     "simple": ("default", "min", "max", "step"),
-    "fixed": ("values", "default_idx"),
+    "fixed": ("values", "default_idx", "raw_values"),
     "factor": ("default", "min", "max", "factors", "default_idx"),
     "callback": (),
 }
@@ -196,6 +196,7 @@ class NodeForm(QWidget):
         self._build_value_fields(form, role)
         self._build_controls_fields(form, role)
         self._build_callback_fields(form)
+        self._number_row(form, "Tag (optional)", "tag")
 
     def _on_type_changed(self, type_name: str) -> None:
         node = self._node
@@ -260,6 +261,7 @@ class NodeForm(QWidget):
         elif role == "fixed":
             self._list_row(form, "Values", "values", numeric=False)
             self._default_idx_row(form)
+            self._list_row(form, "Raw values (optional)", "raw_values", numeric=True, pop_if_empty=True)
 
     def _number_row(self, form: QFormLayout, label: str, key: str) -> None:
         node = self._node
@@ -282,7 +284,7 @@ class NodeForm(QWidget):
         edit.editingFinished.connect(on_changed)
         form.addRow(label, edit)
 
-    def _list_row(self, form: QFormLayout, label: str, key: str, numeric: bool) -> None:
+    def _list_row(self, form: QFormLayout, label: str, key: str, numeric: bool, pop_if_empty: bool = False) -> None:
         node = self._node
 
         def on_change():
@@ -297,9 +299,12 @@ class NodeForm(QWidget):
                             converted.append(float(value))
                         except ValueError:
                             continue
-                node[key] = converted
             else:
-                node[key] = raw
+                converted = raw
+            if not converted and pop_if_empty:
+                node.pop(key, None)
+            else:
+                node[key] = converted
             self._commit()
 
         editor = ListEditor(node.get(key, []), on_change)

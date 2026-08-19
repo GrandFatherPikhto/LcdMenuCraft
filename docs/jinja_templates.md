@@ -94,10 +94,19 @@ typedef struct menu_context {
 `menu_node_config_t` holds the node id, category, a static `tag` (see below), six
 callback pointers and a `union` of category-specific static data:
 
-- `string_fixed_config_t` — `values[]` (string set) + `count` + `default_idx`;
+- `string_fixed_config_t` — `values[]` (string set) + `count` + `default_idx` +
+  `raw_values` (see below);
 - `udword_factor_config_t` — `min`, `max`, `step`, `default_value`, `factors[]`,
   `count`, `default_idx`;
 - `ubyte_simple_config_t` — `default_value`, `step`, `min`, `max`.
+
+Every `fixed`-role category also carries `const int32_t *raw_values;` — `NULL`
+unless the node sets `raw_values:` in the menu YAML (an array parallel to
+`values` by index, same length, holding the real number behind each display
+entry, e.g. a register code). [`menu_get_int32`/`menu_set_int32`](#41-generic-value-access-menuvalueaccesshoutputincludemenuvalueaccessh)
+use it instead of the raw index when present; existing menus that never set it
+are unaffected. A length mismatch against `values` is a validation error
+(`MenuValidator`), not a silent bug found on hardware.
 
 `tag` is an optional `uint32_t` set from the node's `tag:` key in the menu YAML
 (0 if unset) — arbitrary static metadata such as a hardware register id, meant
@@ -177,7 +186,16 @@ void     menu_set_uint32(menu_context_t *ctx, menu_id_t id, uint32_t value);
 ```
 
 Use the `uint32_t` pair for `udword` values above `INT32_MAX` — the `int32_t`
-pair would misinterpret them. Combined with [`tag`](#33-node-config-menuconfighoutputincludemenuconfigh),
+pair would misinterpret them.
+
+For `fixed`-role nodes, these functions read/write `raw_values[idx]` when the
+node set `raw_values:`, or the raw `idx` otherwise (see
+[§3.3](#33-node-config-menuconfighoutputincludemenuconfigh)); `menu_set_*`
+does a linear search over `raw_values` for a matching entry (fixed lists are
+short) and leaves `idx` untouched if the value isn't found — silent-but-visible
+rather than snapping to an approximate index.
+
+Combined with [`tag`](#33-node-config-menuconfighoutputincludemenuconfigh),
 a per-id register-mapping `switch` collapses into:
 
 ```c

@@ -5,6 +5,24 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### 🔢 `raw_values` for `role: fixed`
+
+- Added an optional `raw_values` array on `fixed`-role nodes, parallel to
+  `values` by index — the real underlying number (e.g. a register code) behind
+  each display entry. `menu_get_int32`/`menu_set_int32`/`menu_get_uint32`/
+  `menu_set_uint32` ([`value_access.c.jinja`](../templates/value_access.c.jinja))
+  use it instead of the raw index when set; `menu_set_*` does a linear search
+  and leaves `idx` unchanged if the value isn't found, rather than guessing.
+  Falls back to `idx` when unset, so existing menus are unaffected.
+- Length-checked against `values` in [`MenuValidator`](../generate_menu/menu_validator.py)
+  (the validator actually wired into the pipeline — a matching check was also
+  added to `NodeDataManager.validate_fixed_values()`, but that method is
+  currently dead code, unreached by any caller).
+- Exposed in the GUI node form ([`gui/node_form.py`](../gui/node_form.py)) as an
+  optional "Raw values" list next to "Values" for `role: fixed`; emptying it
+  removes the key rather than leaving `[]`. A generic "Tag" field was also
+  added for any leaf, alongside `tag` from the previous round.
+
 ### 🖥️ PyQt6 GUI
 
 - Added [`gui.py`](../gui.py) / [`gui/`](../gui/) — tree + node property form, Validate

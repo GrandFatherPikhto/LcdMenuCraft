@@ -221,6 +221,7 @@ A node in the menu tree can use the following fields:
 | `default` | Default numeric value |
 | `factors` | Multipliers for the `factor` role |
 | `values` / `default_idx` | Fixed value set for the `fixed` role |
+| `raw_values` | Optional, `fixed` role only — real numeric values parallel to `values` by index (e.g. register codes behind display strings); must be the same length. `menu_get_int32`/`menu_set_int32`/`menu_get_uint32`/`menu_set_uint32` use this instead of the raw index when set |
 | `controls` | Encoder controls: `click`, `position` |
 | `navigate` | Navigation: `cyclic`, `limit` |
 | `items` | Child nodes (sub-menu) |

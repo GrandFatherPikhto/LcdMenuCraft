@@ -96,10 +96,19 @@ typedef struct menu_context {
 `menu_node_config_t` содержит id узла, категорию, статический `tag` (см. ниже),
 шесть указателей на колбэки и `union` категорие-специфичных статических данных:
 
-- `string_fixed_config_t` — `values[]` (набор строк) + `count` + `default_idx`;
+- `string_fixed_config_t` — `values[]` (набор строк) + `count` + `default_idx` +
+  `raw_values` (см. ниже);
 - `udword_factor_config_t` — `min`, `max`, `step`, `default_value`, `factors[]`,
   `count`, `default_idx`;
 - `ubyte_simple_config_t` — `default_value`, `step`, `min`, `max`.
+
+Каждая категория с ролью `fixed` также несёт `const int32_t *raw_values;` —
+`NULL`, если узел не задал `raw_values:` в menu YAML (массив, параллельный
+`values` по индексу, той же длины, с реальным числом за каждой строкой отображения,
+например кодом регистра). [`menu_get_int32`/`menu_set_int32`](#41-общий-доступ-к-значению-menuvalueaccesshoutputincludemenuvalueaccessh)
+используют его вместо сырого индекса, если он задан; существующие меню, где
+это поле не задано, не затрагиваются. Рассинхрон длины с `values` — это ошибка
+валидации (`MenuValidator`), а не молчаливый баг, найденный на железе.
 
 `tag` — необязательный `uint32_t`, задаётся ключом `tag:` узла в menu YAML (0,
 если не задан) — произвольные статические метаданные, например адрес
@@ -180,7 +189,15 @@ void     menu_set_uint32(menu_context_t *ctx, menu_id_t id, uint32_t value);
 ```
 
 Для значений `udword` выше `INT32_MAX` используйте пару `uint32_t` — пара
-`int32_t` их некорректно интерпретирует. Вместе с [`tag`](#33-конфигурация-узла-menuconfighoutputincludemenuconfigh)
+`int32_t` их некорректно интерпретирует.
+
+Для узлов с ролью `fixed` эти функции читают/пишут `raw_values[idx]`, если у
+узла задано `raw_values:`, иначе — сырой `idx` (см. [§3.3](#33-конфигурация-узла-menuconfighoutputincludemenuconfigh));
+`menu_set_*` делает линейный поиск по `raw_values` (списки в меню короткие) и
+оставляет `idx` без изменений, если значение не найдено — заметное отсутствие
+изменения лучше, чем подстановка приблизительного индекса.
+
+Вместе с [`tag`](#33-конфигурация-узла-menuconfighoutputincludemenuconfigh)
 свитч отображения id → регистр схлопывается в:
 
 ```c

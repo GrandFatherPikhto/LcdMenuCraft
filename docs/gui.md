@@ -51,7 +51,12 @@ On startup the GUI opens the menu file wired into
   straight from [`config/menu_data.yaml`](../config/menu_data.yaml) via
   `MenuData`. A role's controls that are marked `required: true` (e.g. `factor`'s
   `click`/`position`) show up pre-checked and disabled — informational only;
-  merely viewing a node never writes anything into it.
+  merely viewing a node never writes anything into it. Two fields aren't
+  role-driven: an optional **Tag** (any leaf) and an optional **Raw values**
+  list shown only for `role: fixed`, parallel to **Values** — see
+  [`tag`/`raw_values`](./jinja_templates.md#33-node-config-menuconfighoutputincludemenuconfigh)
+  in the generated-code reference. Emptying the Raw values list removes the
+  key entirely rather than leaving `[]` behind.
 - **Log panel** (bottom, [`gui/log_panel.py`](../gui/log_panel.py)) — every
   `logger.error/info/debug(...)` call already made throughout
   `menucraft.py`/`menu_generator.py`/`menu_flattener.py`/`common.py` shows up
