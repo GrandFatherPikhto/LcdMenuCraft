@@ -29,6 +29,28 @@ void menu_back(void) {
     menu_navigate_handle_back(ctx, ctx->current);
 }
 
+// Короткий клик: везде "вперёд" -- войти глубже/в редактирование,
+// а если уже в редактировании -- выйти из него (в отличие от menu_enter()).
+void menu_click(void) {
+    menu_context_t *ctx = menu_data_get_context();
+    if (ctx->state == MENU_STATE_EDIT) {
+        menu_navigate_handle_back(ctx, ctx->current);
+    } else {
+        menu_navigate_handle_enter(ctx, ctx->current);
+    }
+}
+
+// Долгий клик: в редактировании -- сменить шаг/множитель (click_cb),
+// вне редактирования -- уровень выше.
+void menu_long_click(void) {
+    menu_context_t *ctx = menu_data_get_context();
+    if (ctx->state == MENU_STATE_EDIT) {
+        menu_navigate_handle_enter(ctx, ctx->current);
+    } else {
+        menu_navigate_handle_back(ctx, ctx->current);
+    }
+}
+
 void menu_reset(void) {
     // Пока не реализовано. Сброс к начальным значениям
     menu_context_t *ctx = menu_data_get_context();

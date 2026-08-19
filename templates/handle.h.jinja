@@ -11,6 +11,8 @@ void menu_init(void);
 void menu_position(int8_t delta);
 void menu_enter(void);
 void menu_back(void);
+void menu_click(void);
+void menu_long_click(void);
 void menu_reset(void);
 void menu_update(void);
 void menu_set_update(void);
