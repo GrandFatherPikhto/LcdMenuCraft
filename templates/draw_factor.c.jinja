@@ -3,11 +3,8 @@ void {{function_name}}(menu_context_t *ctx, menu_id_t id) {
     {{function_info.c_type}} value = ctx->values[id].data.{{function_info.category}}.value;
     {{function_info.c_type}} factor = ctx->configs[id].data.{{function_info.category}}.factors[idx];
 
-{% if function_info.type in ["byte", "word", "dword"] %}
-    snprintf(ctx->value_buf, LCD_STRING_LEN, "%ld (x%ld)", (long)value, (long)factor);
-    menu_draw_pad_marker(ctx);
-{% elif function_info.type in ["ubyte", "uword", "udword"]%}
-    snprintf(ctx->value_buf, LCD_STRING_LEN, "%lu (x%lu)", (unsigned long)value, (unsigned long)factor);
+{% if function_info.printf_format %}
+    snprintf(ctx->value_buf, LCD_STRING_LEN, "{{ function_info.printf_format }} (x{{ function_info.printf_format }})", ({{ function_info.printf_cast }})value, ({{ function_info.printf_cast }})factor);
     menu_draw_pad_marker(ctx);
 {% elif function_info.type == "float" %}
     snprintf(ctx->value_buf, LCD_STRING_LEN, "%2.2f (x%2.2f)", value, factor);

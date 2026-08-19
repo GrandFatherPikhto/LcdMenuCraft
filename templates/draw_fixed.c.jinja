@@ -1,11 +1,8 @@
 void {{function_name}}(menu_context_t *ctx, menu_id_t id) {
     uint8_t idx  = ctx->values[id].data.{{function_info.category}}.idx;
     {{function_info.c_type}} value = ctx->configs[id].data.{{function_info.category}}.values[idx];
-{% if function_info.type in ["byte", "word", "dword"] %}
-    snprintf(ctx->value_buf, LCD_STRING_LEN, "%ld", (long)value);
-    menu_draw_pad_marker(ctx);
-{% elif function_info.type in ["ubyte", "uword", "udword"]%}
-    snprintf(ctx->value_buf, LCD_STRING_LEN, "%lu", (unsigned long)value);
+{% if function_info.printf_format %}
+    snprintf(ctx->value_buf, LCD_STRING_LEN, "{{ function_info.printf_format }}", ({{ function_info.printf_cast }})value);
     menu_draw_pad_marker(ctx);
 {% elif function_info.type == "float" %}
     snprintf(ctx->value_buf, LCD_STRING_LEN, "%2.2f", value);

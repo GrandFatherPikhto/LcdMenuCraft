@@ -145,8 +145,10 @@ class NodeControlManager:
         for auto_func in self._callback_manager.auto_functions_info:
             function_info = FunctionInfo.create_auto(
                 self._node_id, self._node_type, self._node_role, self._node_c_type,
-                auto_func["name"], auto_func["event_type"], 
-                auto_func["navigate"], auto_func["purpose"]
+                auto_func["name"], auto_func["event_type"],
+                auto_func["navigate"], auto_func["purpose"],
+                self._menu_data.printf_format(self._node_type),
+                self._menu_data.printf_cast(self._node_type)
             )
             infos.append(asdict(function_info))
         
@@ -157,7 +159,9 @@ class NodeControlManager:
                 if not any(info["name"] == cb_info["name"] for info in infos):
                     function_info = FunctionInfo.create_custom(
                         self._node_id, self._node_type, self._node_role, self._node_c_type,
-                        cb_info
+                        cb_info,
+                        self._menu_data.printf_format(self._node_type),
+                        self._menu_data.printf_cast(self._node_type)
                     )
                     infos.append(asdict(function_info))
         

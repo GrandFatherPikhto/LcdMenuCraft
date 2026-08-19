@@ -82,6 +82,12 @@ Holds the rules: types → C types, roles → allowed types, controls per role,
 navigation rules per control, role rules (purpose, required controls, external callbacks).
 Provides lookups used by the managers: [`get_controls_for_type`](../generate_menu/menu_data.py:40),
 [`get_navigation_rules`](../generate_menu/menu_data.py:57), [`get_control_config`](../generate_menu/menu_data.py:95).
+Integer types (`byte`, `ubyte`, `word`, `uword`, `dword`, `udword`) also carry
+`printf_format`/`printf_cast` (e.g. `%ld` + `(long)` for signed, `%lu` +
+`(unsigned long)` for unsigned). `MenuData.printf_format()`/`printf_cast()`
+expose them and the draw templates use them instead of hardcoded type lists.
+`float` deliberately has no `printf_format` — its precision is role-dependent
+(`%3.3f` in `simple`, `%2.2f` in `factor`/`fixed`) and stays hardcoded.
 
 ### 2.3 [`menu_validator.py`](../generate_menu/menu_validator.py:16) — `MenuValidator`
 

@@ -45,6 +45,21 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/).
   `BaseFlatNode.validate_data()` are gone — the pipeline is back to a single
   pre-flatten validation via `MenuValidator`.
 
+### 🔢 printf-format moved from templates to config
+
+- `printf_format`/`printf_cast` are now part of `types:` in
+  [`config/menu_data.yaml`](../config/menu_data.yaml) for the six integer types
+  (`byte`/`ubyte`/`word`/`uword`/`dword`/`udword`) — `%ld` + `(long)` for signed,
+  `%lu` + `(unsigned long)` for unsigned — and flow through `MenuData.printf_format()`/
+  `printf_cast()` into `FunctionInfo` for the templates.
+- [`draw_simple.c.jinja`](../templates/draw_simple.c.jinja),
+  [`draw_factor.c.jinja`](../templates/draw_factor.c.jinja) and
+  [`draw_fixed.c.jinja`](../templates/draw_fixed.c.jinja) now use those fields
+  instead of hardcoded `if/elif` over type lists (generated C is byte-identical,
+  verified by a golden diff).
+- `float` is deliberately left as-is: its precision is role-dependent
+  (`%3.3f` in `simple`, `%2.2f` in `factor`/`fixed`), so it stays in the templates.
+
 ### 📏 `menu_draw_pad_marker()` made public
 
 - The line-padding/state-marker helper in [`draw.c.jinja`](../templates/draw.c.jinja)

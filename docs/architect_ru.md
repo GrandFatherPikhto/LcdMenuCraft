@@ -84,6 +84,12 @@ MenuCraft/
 внешние callbacks). Предоставляет поиск для менеджеров:
 [`get_controls_for_type`](../generate_menu/menu_data.py:40),
 [`get_navigation_rules`](../generate_menu/menu_data.py:57), [`get_control_config`](../generate_menu/menu_data.py:95).
+Целочисленные типы (`byte`, `ubyte`, `word`, `uword`, `dword`, `udword`) несут
+также `printf_format`/`printf_cast` (например `%ld` + `(long)` для знаковых,
+`%lu` + `(unsigned long)` для беззнаковых). Их отдают `MenuData.printf_format()`/
+`printf_cast()`, и шаблоны отрисовки используют их вместо захардкоженных списков
+типов. У `float` намеренно нет `printf_format` — точность зависит от роли
+(`%3.3f` в `simple`, `%2.2f` в `factor`/`fixed`) и остаётся в шаблонах.
 
 ### 2.3 [`menu_validator.py`](../generate_menu/menu_validator.py:16) — `MenuValidator`
 

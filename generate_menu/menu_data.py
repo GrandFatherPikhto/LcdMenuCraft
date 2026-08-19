@@ -77,7 +77,20 @@ class MenuData:
         if type_data is None:
             return None
         return type_data.get("c_type")
-    
+
+    def printf_format(self, name: str) -> str | None:
+        type_data = self._types.get(name)
+        if type_data is None:
+            return None
+        return type_data.get("printf_format")
+
+    def printf_cast(self, name: str) -> str | None:
+        type_data = self._types.get(name)
+        if type_data is None:
+            return None
+        return type_data.get("printf_cast")
+
+
     def role(self, name: str) -> List | None:
         return self._roles.get(name)
 

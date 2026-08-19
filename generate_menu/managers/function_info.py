@@ -16,10 +16,13 @@ class FunctionInfo:
     role: str
     c_type: str
     category: str
-    
+    printf_format: Optional[str] = None
+    printf_cast: Optional[str] = None
+
     @classmethod
     def create_auto(cls, node_id: str, node_type: str, node_role: str, node_c_type: str,
-                   name: str, event_type: str, navigate: str, purpose: str):
+                   name: str, event_type: str, navigate: str, purpose: str,
+                   node_printf_format: Optional[str] = None, node_printf_cast: Optional[str] = None):
         """Factory method for automatic functions."""
         return cls(
             name=name,
@@ -31,12 +34,15 @@ class FunctionInfo:
             type=node_type,
             role=node_role,
             c_type=node_c_type,
-            category=f"{node_type}_{node_role}"
+            category=f"{node_type}_{node_role}",
+            printf_format=node_printf_format,
+            printf_cast=node_printf_cast
         )
-    
+
     @classmethod
     def create_custom(cls, node_id: str, node_type: str, node_role: str, node_c_type: str,
-                     cb_info: Dict[str, Any]):
+                     cb_info: Dict[str, Any],
+                     node_printf_format: Optional[str] = None, node_printf_cast: Optional[str] = None):
         """Factory method for custom functions."""
         category = cls._extract_category(cb_info)
         return cls(
@@ -49,7 +55,9 @@ class FunctionInfo:
             type=node_type,
             role=node_role,
             c_type=node_c_type,
-            category=category or f"{node_type}_{node_role}"
+            category=category or f"{node_type}_{node_role}",
+            printf_format=node_printf_format,
+            printf_cast=node_printf_cast
         )
     
     @staticmethod

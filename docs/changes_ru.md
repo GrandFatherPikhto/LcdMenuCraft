@@ -46,7 +46,22 @@
   `BaseFlatNode.validate_data()` — конвейер снова имеет одну проверку до flatten
   через `MenuValidator`.
 
-### 📏 `menu_draw_pad_marker()` стал публичным
+### 🔢 printf-формат перенесён из шаблонов в конфиг
+
+- `printf_format`/`printf_cast` теперь часть `types:` в
+  [`config/menu_data.yaml`](../config/menu_data.yaml) для шести целочисленных
+  типов (`byte`/`ubyte`/`word`/`uword`/`dword`/`udword`) — `%ld` + `(long)` для
+  знаковых, `%lu` + `(unsigned long)` для беззнаковых — и доходят через
+  `MenuData.printf_format()`/`printf_cast()` в `FunctionInfo` до шаблонов.
+- [`draw_simple.c.jinja`](../templates/draw_simple.c.jinja),
+  [`draw_factor.c.jinja`](../templates/draw_factor.c.jinja) и
+  [`draw_fixed.c.jinja`](../templates/draw_fixed.c.jinja) используют эти поля
+  вместо захардкоженных `if/elif` по спискам типов (сгенерированный C побайтово
+  идентичен — подтверждено golden-сравнением).
+- `float` осознанно не тронут: точность зависит от роли (`%3.3f` в `simple`,
+  `%2.2f` в `factor`/`fixed`), поэтому ветка остаётся в шаблонах.
+
+###  `menu_draw_pad_marker()` стал публичным
 
 - Хелпер паддинга строки и маркера состояния в
   [`draw.c.jinja`](../templates/draw.c.jinja) был `static` и не объявлялся —

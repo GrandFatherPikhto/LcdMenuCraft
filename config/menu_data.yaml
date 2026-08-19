@@ -2,12 +2,12 @@
 # (equivalent of the former menu_data.json)
 
 types:
-  byte: {c_type: int8_t}
-  ubyte: {c_type: uint8_t}
-  word: {c_type: int16_t}
-  uword: {c_type: uint16_t}
-  dword: {c_type: int32_t}
-  udword: {c_type: uint32_t}
+  byte: {c_type: int8_t, printf_format: "%ld", printf_cast: long}
+  ubyte: {c_type: uint8_t, printf_format: "%lu", printf_cast: "unsigned long"}
+  word: {c_type: int16_t, printf_format: "%ld", printf_cast: long}
+  uword: {c_type: uint16_t, printf_format: "%lu", printf_cast: "unsigned long"}
+  dword: {c_type: int32_t, printf_format: "%ld", printf_cast: long}
+  udword: {c_type: uint32_t, printf_format: "%lu", printf_cast: "unsigned long"}
   string: {c_type: "const char*"}
   callback: {c_type: "void*"}
 
