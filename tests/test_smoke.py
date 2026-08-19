@@ -63,3 +63,73 @@ def test_real_menu_flattens(menu_flattener):
     flat = menu_flattener.flatten()
     assert len(flat) == 18
     assert flat[0].id == "root"
+
+
+def test_menu_override_replaces_only_the_tree(config_path, tmp_path):
+    """menu_override swaps the tree while schema/data_rules still come from config_path."""
+    from generate_menu.menu_config import MenuConfig
+
+    override_path = tmp_path / "override.yaml"
+    override_path.write_text(
+        "config: {}\n"
+        "menu:\n"
+        "  - id: only_node\n"
+        "    title: Only\n"
+        "    type: string\n"
+        "    role: fixed\n"
+        "    values: [A]\n"
+        "    default_idx: 0\n",
+        encoding="utf-8",
+    )
+
+    base = MenuConfig(str(config_path))
+    overridden = MenuConfig(str(config_path), menu_override=str(override_path))
+
+    assert len(overridden.menu_tree) == 1
+    assert overridden.menu_tree[0]["id"] == "only_node"
+    # Not affected by the override: still sourced from the base config.
+    assert overridden.menu_schema == base.menu_schema
+    assert overridden.data_config == base.data_config
+
+
+def test_menu_override_tree_still_validates(config_path, tmp_path):
+    """A menu_override tree is validated with the same schema/rules as usual."""
+    from generate_menu.menu_config import MenuConfig
+    from generate_menu.menu_validator import MenuValidator
+
+    override_path = tmp_path / "override.yaml"
+    override_path.write_text(
+        "config: {}\n"
+        "menu:\n"
+        "  - id: only_node\n"
+        "    title: Only\n"
+        "    type: string\n"
+        "    role: fixed\n"
+        "    values: [A]\n"
+        "    default_idx: 0\n",
+        encoding="utf-8",
+    )
+
+    config = MenuConfig(str(config_path), menu_override=str(override_path))
+    assert MenuValidator(config=config).validate() == {}
+
+
+def test_menucraft_accepts_menu_override(config_path, tmp_path):
+    """MenuCraft threads menu_override through to MenuConfig end to end."""
+    from generate_menu.menucraft import MenuCraft
+
+    override_path = tmp_path / "override.yaml"
+    override_path.write_text(
+        "config: {}\n"
+        "menu:\n"
+        "  - id: only_node\n"
+        "    title: Only\n"
+        "    type: string\n"
+        "    role: fixed\n"
+        "    values: [A]\n"
+        "    default_idx: 0\n",
+        encoding="utf-8",
+    )
+
+    processor = MenuCraft(str(config_path), menu_override=str(override_path))
+    assert list(processor.menu.keys()) == ["only_node"]

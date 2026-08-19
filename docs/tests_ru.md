@@ -35,19 +35,25 @@ pytest (сейчас **54 теста, все проходят**).
 |----------|---------|----------|
 | `project_root` | session | Абсолютный путь корня проекта |
 | `package_dir` | session | Абсолютный путь пакета `generate_menu` |
-| `config_path` | session | Абсолютный путь `config/test_config.yaml` (**не** настоящего `config/config.yaml`) |
-| `menu_config` | session | `MenuConfig`, собранный из `test_config.yaml` |
-| `menu_data` | session | `MenuData`, собранный из `test_config.yaml` |
+| `config_path` | session | Абсолютный путь настоящего `config/config.yaml` |
+| `menu_override_path` | session | Абсолютный путь [`menu/test.yaml`](../menu/test.yaml) — замороженной копии исходного примера дерева меню |
+| `menu_config` | session | `MenuConfig`, собранный из `config_path` с `menu_override=menu_override_path` |
+| `menu_data` | session | `MenuData`, собранный из `menu_config` |
 | `menu_validator` | function | Свежий `MenuValidator` на каждый тест (хранит внутреннее состояние) |
 | `menu_flattener` | function | Свежий `MenuFlattener` на каждый тест |
 
-Все эти фикстуры читают [`config/test_config.yaml`](../config/test_config.yaml),
-который указывает на [`menu/test.yaml`](../menu/test.yaml) — замороженную копию
-исходного примера дерева меню — вместо настоящих
-[`config/config.yaml`](../config/config.yaml) /
-[`menu/menu.yaml`](../menu/menu.yaml). Это удерживает набор тестов стабильным
-(некоторые тесты проверяют точное количество узлов и их id), пока реальное дерево
-меню редактируется под конкретное устройство.
+`menu_config` (и всё, что строится на нём) использует **настоящий**
+[`config/config.yaml`](../config/config.yaml) для schema/data_rules/шаблонов, но
+подставляет вместо дерева [`menu/test.yaml`](../menu/test.yaml) через параметр
+`menu_override` у `MenuConfig` — тот же механизм, что использует флаг `--menu` в
+CLI. Это удерживает набор тестов стабильным (некоторые тесты проверяют точное
+количество узлов и их id), пока настоящий
+[`menu/menu.yaml`](../menu/menu.yaml) редактируется под конкретное устройство, —
+и не требует отдельного, продублированного главного конфига только для тестов.
+
+Несколько тестов строят `MenuCraft`/`MenuGenerator` напрямую (не через фикстуру
+`menu_config`) — они принимают `config_path` **и** `menu_override_path` явно,
+передавая второй как `menu_override=str(menu_override_path)`.
 
 ## 3. Тестовые модули
 

@@ -30,11 +30,17 @@ os.environ.pop("MENU_PROCESSOR_LANG", None)
 #: Absolute path to the generate_menu package directory.
 PACKAGE_DIR = PROJECT_ROOT / "generate_menu"
 
-#: Absolute path to the main YAML configuration file used by the test suite.
-#: Deliberately points at config/test_config.yaml -> menu/test.yaml (a frozen
-#: copy of the sample tree), not the real config/config.yaml -> menu/menu.yaml,
-#: so tests stay stable while the real menu tree is being edited for a device.
-CONFIG_PATH = PROJECT_ROOT / "config" / "test_config.yaml"
+#: Absolute path to the main YAML configuration file (project root config/).
+#: Always the real config.yaml -- schema/data_rules/generation_files/flatten
+#: never change for tests, only the menu tree does (see MENU_OVERRIDE_PATH).
+CONFIG_PATH = PROJECT_ROOT / "config" / "config.yaml"
+
+#: Absolute path to a frozen copy of the original sample menu tree. Passed as
+#: MenuConfig's ``menu_override`` so the suite stays stable (several tests
+#: assert exact node counts/ids) while the real menu/menu.yaml is being
+#: edited for an actual device -- the same override mechanism the CLI's
+#: ``--menu`` flag uses, kept in sync rather than duplicating config.yaml.
+MENU_OVERRIDE_PATH = PROJECT_ROOT / "menu" / "test.yaml"
 
 
 @pytest.fixture(scope="session")
@@ -60,11 +66,18 @@ def config_path() -> Path:
 
 
 @pytest.fixture(scope="session")
-def menu_config(config_path):
-    """A session-scoped ``MenuConfig`` built from the real configuration."""
+def menu_override_path() -> Path:
+    """Absolute path to the frozen test menu tree (menu/test.yaml)."""
+    return MENU_OVERRIDE_PATH
+
+
+@pytest.fixture(scope="session")
+def menu_config(config_path, menu_override_path):
+    """A session-scoped ``MenuConfig`` built from the real config, with the
+    frozen test tree substituted in via ``menu_override``."""
     from generate_menu.menu_config import MenuConfig
 
-    return MenuConfig(str(config_path))
+    return MenuConfig(str(config_path), menu_override=str(menu_override_path))
 
 
 @pytest.fixture(scope="session")

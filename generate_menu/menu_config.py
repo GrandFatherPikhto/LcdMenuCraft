@@ -15,13 +15,28 @@ class ConfigError(Exception):
             super().__init__(message)
 
 class MenuConfig:
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str, menu_override: Optional[str] = None):
+        """Loads the main config and every file it points to.
+
+        Args:
+            file_path: path to the main config file (schema/data_rules/
+                generation_files/flatten always come from here).
+            menu_override: if given, used as the menu tree path instead of
+                the main config's own ``menu`` key -- resolved relative to
+                the current working directory (like ``file_path`` itself),
+                not relative to the main config's directory. Lets a caller
+                (the CLI's ``--menu``) swap the tree without writing a new
+                main config file just to change one key.
+        """
         self._generation_files = {}
         self._config_path = Path(file_path)
         self._main_config = self._load_data_file(self._config_path, "main config")
 
         self._menu_schema = self._load_required_file("menu_schema", "menu schema")
-        self._menu_data = self._load_required_file("menu", "menu data")
+        if menu_override:
+            self._menu_data = self._load_data_file(Path(menu_override), "menu data")
+        else:
+            self._menu_data = self._load_required_file("menu", "menu data")
         self._menu_config = self._menu_data.get("config")
         self._menu_tree = self._menu_data.get("menu")
         self._data_config = self._load_required_file("data_rules", "menu item data and roles")

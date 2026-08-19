@@ -41,7 +41,7 @@ menu:
   values: ['Off', 'On']
   default_idx: 0
   navigate: cyclic
-  event_cb: hipims_on_enable_changed   # reg = 0 (REG_ENABLE)
+  event_cb: hipims_on_value_changed   # reg = 0 (REG_ENABLE)
 
 - id: start
   title: Start
@@ -50,7 +50,7 @@ menu:
   values: ['Off', 'On']
   default_idx: 0
   navigate: cyclic
-  event_cb: hipims_on_start_changed    # reg = 1 (REG_START)
+  event_cb: hipims_on_value_changed    # reg = 1 (REG_START)
 
 - id: options
   title: Options
@@ -65,7 +65,7 @@ menu:
     min: 0
     max: 8338607        # MAX_PERIOD_CYCLES (2^23-1 minus pre/post margin)
     factors: [1, 50, 500, 5000, 50000]
-    event_cb: hipims_on_period_changed # reg = 2 (REG_PERIOD)
+    event_cb: hipims_on_value_changed # reg = 2 (REG_PERIOD)
 
   - id: leg_a
     title: Leg A
@@ -78,7 +78,7 @@ menu:
       min: 0
       max: 8388607      # TIME_WIDTH_MAX (2^23-1)
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_leg_a_width_changed # reg = 3 (REG_LEGA_WIDTH)
+      event_cb: hipims_on_value_changed # reg = 3 (REG_LEGA_WIDTH)
 
   - id: leg_b
     title: Leg B
@@ -90,7 +90,7 @@ menu:
       values: ['Off', 'On']
       default_idx: 0
       navigate: cyclic
-      event_cb: hipims_on_leg_b_enable_changed # reg = 4 (REG_LEGB_ENABLE)
+      event_cb: hipims_on_value_changed # reg = 4 (REG_LEGB_ENABLE)
     - id: leg_b_delay
       title: Delay
       type: dword           # signed int32_t (fixed 2026-08-19)
@@ -99,7 +99,7 @@ menu:
       min: -25000        # -MARGIN_CYCLES (-500us pre-trigger)
       max: 8413607       # TIME_WIDTH_MAX + MARGIN_CYCLES
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_leg_b_delay_changed # reg = 5 (REG_LEGB_DELAY)
+      event_cb: hipims_on_value_changed # reg = 5 (REG_LEGB_DELAY)
     - id: leg_b_width
       title: Width
       type: dword
@@ -108,7 +108,7 @@ menu:
       min: 0
       max: 8388607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_leg_b_width_changed # reg = 6 (REG_LEGB_WIDTH)
+      event_cb: hipims_on_value_changed # reg = 6 (REG_LEGB_WIDTH)
 
   - id: channel_0
     title: Channel 0
@@ -120,7 +120,7 @@ menu:
       values: ['Off', 'On']
       default_idx: 0
       navigate: cyclic
-      event_cb: hipims_on_ch0_enable_changed # reg = 7
+      event_cb: hipims_on_value_changed # reg = 7
     - id: ch0_delay
       title: Delay
       type: dword
@@ -129,7 +129,7 @@ menu:
       min: -25000
       max: 8413607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch0_delay_changed  # reg = 8
+      event_cb: hipims_on_value_changed  # reg = 8
     - id: ch0_width
       title: Width
       type: dword
@@ -138,7 +138,7 @@ menu:
       min: 0
       max: 8388607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch0_width_changed  # reg = 9
+      event_cb: hipims_on_value_changed  # reg = 9
 
   - id: channel_1
     title: Channel 1
@@ -150,7 +150,7 @@ menu:
       values: ['Off', 'On']
       default_idx: 0
       navigate: cyclic
-      event_cb: hipims_on_ch1_enable_changed # reg = 10
+      event_cb: hipims_on_value_changed # reg = 10
     - id: ch1_delay
       title: Delay
       type: dword
@@ -159,7 +159,7 @@ menu:
       min: -25000
       max: 8413607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch1_delay_changed  # reg = 11
+      event_cb: hipims_on_value_changed  # reg = 11
     - id: ch1_width
       title: Width
       type: dword
@@ -168,7 +168,7 @@ menu:
       min: 0
       max: 8388607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch1_width_changed  # reg = 12
+      event_cb: hipims_on_value_changed  # reg = 12
 
   - id: channel_2
     title: Channel 2
@@ -180,7 +180,7 @@ menu:
       values: ['Off', 'On']
       default_idx: 0
       navigate: cyclic
-      event_cb: hipims_on_ch2_enable_changed # reg = 13
+      event_cb: hipims_on_value_changed # reg = 13
     - id: ch2_delay
       title: Delay
       type: dword
@@ -189,7 +189,7 @@ menu:
       min: -25000
       max: 8413607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch2_delay_changed  # reg = 14
+      event_cb: hipims_on_value_changed  # reg = 14
     - id: ch2_width
       title: Width
       type: dword
@@ -198,7 +198,7 @@ menu:
       min: 0
       max: 8388607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch2_width_changed  # reg = 15
+      event_cb: hipims_on_value_changed  # reg = 15
 
   - id: channel_3
     title: Channel 3
@@ -210,7 +210,7 @@ menu:
       values: ['Off', 'On']
       default_idx: 0
       navigate: cyclic
-      event_cb: hipims_on_ch3_enable_changed # reg = 16
+      event_cb: hipims_on_value_changed # reg = 16
     - id: ch3_delay
       title: Delay
       type: dword
@@ -219,7 +219,7 @@ menu:
       min: -25000
       max: 8413607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch3_delay_changed  # reg = 17
+      event_cb: hipims_on_value_changed  # reg = 17
     - id: ch3_width
       title: Width
       type: dword
@@ -228,7 +228,7 @@ menu:
       min: 0
       max: 8388607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch3_width_changed  # reg = 18
+      event_cb: hipims_on_value_changed  # reg = 18
 
   - id: channel_4
     title: Channel 4
@@ -240,7 +240,7 @@ menu:
       values: ['Off', 'On']
       default_idx: 0
       navigate: cyclic
-      event_cb: hipims_on_ch4_enable_changed # reg = 19
+      event_cb: hipims_on_value_changed # reg = 19
     - id: ch4_delay
       title: Delay
       type: dword
@@ -249,7 +249,7 @@ menu:
       min: -25000
       max: 8413607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch4_delay_changed  # reg = 20
+      event_cb: hipims_on_value_changed  # reg = 20
     - id: ch4_width
       title: Width
       type: dword
@@ -258,7 +258,7 @@ menu:
       min: 0
       max: 8388607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch4_width_changed  # reg = 21
+      event_cb: hipims_on_value_changed  # reg = 21
 
   - id: channel_5
     title: Channel 5
@@ -270,7 +270,7 @@ menu:
       values: ['Off', 'On']
       default_idx: 0
       navigate: cyclic
-      event_cb: hipims_on_ch5_enable_changed # reg = 22
+      event_cb: hipims_on_value_changed # reg = 22
     - id: ch5_delay
       title: Delay
       type: dword
@@ -279,7 +279,7 @@ menu:
       min: -25000
       max: 8413607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch5_delay_changed  # reg = 23
+      event_cb: hipims_on_value_changed  # reg = 23
     - id: ch5_width
       title: Width
       type: dword
@@ -288,7 +288,7 @@ menu:
       min: 0
       max: 8388607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch5_width_changed  # reg = 24
+      event_cb: hipims_on_value_changed  # reg = 24
 
   - id: channel_6
     title: Channel 6
@@ -300,7 +300,7 @@ menu:
       values: ['Off', 'On']
       default_idx: 0
       navigate: cyclic
-      event_cb: hipims_on_ch6_enable_changed # reg = 25
+      event_cb: hipims_on_value_changed # reg = 25
     - id: ch6_delay
       title: Delay
       type: dword
@@ -309,7 +309,7 @@ menu:
       min: -25000
       max: 8413607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch6_delay_changed  # reg = 26
+      event_cb: hipims_on_value_changed  # reg = 26
     - id: ch6_width
       title: Width
       type: dword
@@ -318,7 +318,7 @@ menu:
       min: 0
       max: 8388607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch6_width_changed  # reg = 27
+      event_cb: hipims_on_value_changed  # reg = 27
 
   - id: channel_7
     title: Channel 7
@@ -330,7 +330,7 @@ menu:
       values: ['Off', 'On']
       default_idx: 0
       navigate: cyclic
-      event_cb: hipims_on_ch7_enable_changed # reg = 28
+      event_cb: hipims_on_value_changed # reg = 28
     - id: ch7_delay
       title: Delay
       type: dword
@@ -339,7 +339,7 @@ menu:
       min: -25000
       max: 8413607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch7_delay_changed  # reg = 29
+      event_cb: hipims_on_value_changed  # reg = 29
     - id: ch7_width
       title: Width
       type: dword
@@ -348,7 +348,7 @@ menu:
       min: 0
       max: 8388607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_ch7_width_changed  # reg = 30
+      event_cb: hipims_on_value_changed  # reg = 30
 
   - id: anode
     title: Anode
@@ -360,7 +360,7 @@ menu:
       values: ['Off', 'On']
       default_idx: 0
       navigate: cyclic
-      event_cb: hipims_on_anode_enable_changed # reg = 31
+      event_cb: hipims_on_value_changed # reg = 31
     - id: anode_period
       title: Period
       type: dword
@@ -369,7 +369,7 @@ menu:
       min: 0
       max: 8388607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_anode_period_changed # reg = 32
+      event_cb: hipims_on_value_changed # reg = 32
     - id: anode_delay
       title: Delay
       type: dword
@@ -378,7 +378,7 @@ menu:
       min: -25000
       max: 8413607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_anode_delay_changed  # reg = 33
+      event_cb: hipims_on_value_changed  # reg = 33
     - id: anode_duration
       title: Duration
       type: dword
@@ -387,7 +387,7 @@ menu:
       min: 0
       max: 8388607
       factors: [1, 50, 500, 5000, 50000]
-      event_cb: hipims_on_anode_duration_changed # reg = 34
+      event_cb: hipims_on_value_changed # reg = 34
     - id: anode_deadtime
       title: Deadtime
       type: dword
@@ -400,7 +400,7 @@ menu:
                             # hipims_menu.c ANODE_DEADTIME_MAX_NS) — the FPGA
                             # itself further saturates to [300ns, 100us]
                             # regardless of what's sent
-      event_cb: hipims_on_anode_deadtime_changed # reg = 35
+      event_cb: hipims_on_value_changed # reg = 35
 
 - id: errors
   title: Errors

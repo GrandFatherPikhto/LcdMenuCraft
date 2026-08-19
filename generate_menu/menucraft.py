@@ -29,9 +29,9 @@ class MenuCraft:
     the artifact-saving/validation/debug helpers.
     """
 
-    def __init__(self, config_name: str):
+    def __init__(self, config_name: str, menu_override: Optional[str] = None):
         self._config_name = config_name
-        self._config = MenuConfig(self._config_name)
+        self._config = MenuConfig(self._config_name, menu_override=menu_override)
         logger.info("✅ " + _("Configuration {path} loaded successfully").format(path=self._config_name))
         self._validator = MenuValidator(config=self._config)
         errors = self._validator.validate()

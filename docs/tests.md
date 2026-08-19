@@ -33,18 +33,24 @@ The suite is split into:
 |---------|-------|----------|
 | `project_root` | session | Absolute path of the project root |
 | `package_dir` | session | Absolute path of the `generate_menu` package |
-| `config_path` | session | Absolute path of `config/test_config.yaml` (**not** the real `config/config.yaml`) |
-| `menu_config` | session | `MenuConfig` built from `test_config.yaml` |
-| `menu_data` | session | `MenuData` built from `test_config.yaml` |
+| `config_path` | session | Absolute path of the real `config/config.yaml` |
+| `menu_override_path` | session | Absolute path of [`menu/test.yaml`](../menu/test.yaml), a frozen copy of the original sample menu tree |
+| `menu_config` | session | `MenuConfig` built from `config_path`, with `menu_override=menu_override_path` |
+| `menu_data` | session | `MenuData` built from `menu_config` |
 | `menu_validator` | function | A fresh `MenuValidator` per test (it keeps internal state) |
 | `menu_flattener` | function | A fresh `MenuFlattener` per test |
 
-All of these read [`config/test_config.yaml`](../config/test_config.yaml), which
-points at [`menu/test.yaml`](../menu/test.yaml) — a frozen copy of the original
-sample menu tree — instead of the real [`config/config.yaml`](../config/config.yaml)
-/ [`menu/menu.yaml`](../menu/menu.yaml). This keeps the suite (several tests assert
-exact node counts and ids) stable while the real menu tree is being edited for an
-actual device.
+`menu_config` (and everything built from it) uses the **real**
+[`config/config.yaml`](../config/config.yaml) for schema/data-rules/templates, but
+substitutes [`menu/test.yaml`](../menu/test.yaml) for the tree via `MenuConfig`'s
+`menu_override` parameter — the same mechanism the CLI's `--menu` flag uses. This
+keeps the suite (several tests assert exact node counts and ids) stable while the
+real [`menu/menu.yaml`](../menu/menu.yaml) is being edited for an actual device,
+without needing a second, duplicated main config file just for tests.
+
+A handful of tests build `MenuCraft`/`MenuGenerator` directly (not through the
+`menu_config` fixture) — those take `config_path` **and** `menu_override_path`
+explicitly, passing the latter as `menu_override=str(menu_override_path)`.
 
 ## 3. Test modules
 

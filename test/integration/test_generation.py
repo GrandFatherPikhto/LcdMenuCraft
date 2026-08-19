@@ -32,13 +32,13 @@ EXPECTED_FILES = [
 ]
 
 
-def test_generator_creates_c_files(monkeypatch, project_root, config_path):
+def test_generator_creates_c_files(monkeypatch, project_root, config_path, menu_override_path):
     """Running the generator from the project root produces the C sources."""
     monkeypatch.chdir(project_root)
 
     from generate_menu.menu_generator import MenuGenerator
 
-    MenuGenerator(str(config_path))
+    MenuGenerator(str(config_path), menu_override=str(menu_override_path))
 
     output = project_root / "output"
     for relative in EXPECTED_FILES:
@@ -47,26 +47,26 @@ def test_generator_creates_c_files(monkeypatch, project_root, config_path):
         assert path.stat().st_size > 0, f"Generated file is empty: {path}"
 
 
-def test_processor_exposes_flat_menu(monkeypatch, project_root, config_path):
+def test_processor_exposes_flat_menu(monkeypatch, project_root, config_path, menu_override_path):
     """The processor behind the generator exposes all menu nodes but root."""
     monkeypatch.chdir(project_root)
 
     from generate_menu.menu_generator import MenuGenerator
 
-    generator = MenuGenerator(str(config_path))
+    generator = MenuGenerator(str(config_path), menu_override=str(menu_override_path))
     processor = generator._processor
     # 18 flat nodes total, minus the virtual root node.
     assert len(processor.menu) == 17
 
 
-def test_processor_saves_flat_and_functions_json(monkeypatch, project_root, config_path):
+def test_processor_saves_flat_and_functions_json(monkeypatch, project_root, config_path, menu_override_path):
     """save_flattern_json() and save_json_data() write the JSON artifacts."""
     monkeypatch.chdir(project_root)
 
     from generate_menu.menucraft import MenuCraft
     from generate_menu.common import save_json_data
 
-    processor = MenuCraft(str(config_path))
+    processor = MenuCraft(str(config_path), menu_override=str(menu_override_path))
 
     output = project_root / "output"
     flat_path = output / "flatterned.json"
@@ -88,13 +88,13 @@ def test_processor_saves_flat_and_functions_json(monkeypatch, project_root, conf
     assert len(functions_data) > 0
 
 
-def test_generated_data_file_contains_node_titles(monkeypatch, project_root, config_path):
+def test_generated_data_file_contains_node_titles(monkeypatch, project_root, config_path, menu_override_path):
     """The generated data file embeds real menu node titles."""
     monkeypatch.chdir(project_root)
 
     from generate_menu.menu_generator import MenuGenerator
 
-    MenuGenerator(str(config_path))
+    MenuGenerator(str(config_path), menu_override=str(menu_override_path))
 
     data_c = project_root / "output" / "menu_data_config.c"
     content = data_c.read_text(encoding="utf-8")

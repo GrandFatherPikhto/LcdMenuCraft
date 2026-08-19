@@ -5,6 +5,7 @@ a user would run it, so the tests verify the real entry point, its exit code,
 the generated artifacts and i18n localization.
 """
 
+import json
 import os
 import subprocess
 import sys
@@ -14,7 +15,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
-def _run_entrypoint(env_extra=None):
+def _run_entrypoint(env_extra=None, extra_args=None):
     """Runs the root generate_menu.py entry point in a subprocess."""
     env = dict(os.environ)
     # Force UTF-8 stdout/stderr in the subprocess: on Windows the console
@@ -23,7 +24,7 @@ def _run_entrypoint(env_extra=None):
     if env_extra:
         env.update(env_extra)
     return subprocess.run(
-        [sys.executable, "generate_menu.py"],
+        [sys.executable, "generate_menu.py", *(extra_args or [])],
         cwd=str(PROJECT_ROOT),
         env=env,
         capture_output=True,
@@ -68,3 +69,20 @@ def test_russian_entrypoint_output():
     assert result.returncode == 0, result.stderr
     assert "Конфигурация" in result.stdout
     assert "успешно загружена" in result.stdout
+
+
+def test_menu_flag_overrides_the_tree():
+    """--menu swaps the tree while --config's own schema/rules still apply.
+
+    Uses the frozen menu/test.yaml (17 nodes) against the *default* main
+    config (config/config.yaml, whose own `menu:` key points at the real,
+    separately-edited menu/menu.yaml) -- proving the override actually wins
+    over the default config's own menu path.
+    """
+    result = _run_entrypoint(extra_args=["--menu", "menu/test.yaml", "--flat-only"])
+    assert result.returncode == 0, result.stderr
+
+    flat_path = PROJECT_ROOT / "output" / "flatterned.json"
+    assert flat_path.is_file()
+    flat_data = json.loads(flat_path.read_text(encoding="utf-8"))
+    assert len(flat_data["nodes"]) == 17

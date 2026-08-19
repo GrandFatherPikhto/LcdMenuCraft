@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 class MenuGenerator:
     """Generates C source files from the Jinja2 templates."""
 
-    def __init__(self, config_json, processor: Optional[MenuCraft] = None):
-        self._processor = processor if processor is not None else MenuCraft(config_json)
+    def __init__(self, config_json, processor: Optional[MenuCraft] = None, menu_override: Optional[str] = None):
+        self._processor = processor if processor is not None else MenuCraft(config_json, menu_override=menu_override)
         self._config: MenuConfig = self._processor.config
         self._env = Environment(
             loader=FileSystemLoader(str(self._config.templates_path)),
