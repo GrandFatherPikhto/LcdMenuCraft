@@ -47,7 +47,8 @@ typedef struct s_{{category_name}}_t {
 {% elif category.role == "fixed" %}
     uint8_t count;
     uint8_t default_idx;
-    {{category.c_type}} *values; {# c_type уже содержит const для строк (const char*) #}
+    {# c_type уже содержит const для строк (const char*) #}
+    {{category.c_type}} *values;
     const int32_t *raw_values; ///< Optional, NULL if not set in menu.yaml. 1:1 with values by index.
 {% endif %}
 
