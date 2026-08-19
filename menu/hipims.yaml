@@ -13,12 +13,14 @@
 # C module is generated.
 #
 # All time-kind fields (period/width/delay/duration) use role: factor with
-# factors [1, 10, 100, 1000, 10000] raw cycles (1 LSB = 20ns) — i.e.
-# 20ns/1us/10us/100us/1ms per click, matching the step sizes the hand-written
-# firmware used before this menu was generated. anode_deadtime is the one
-# exception: it's deliberately fine-grained only (role: simple, step 1 =
-# 20ns), since its whole usable range is a few hundred to ~2000ns and a
-# coarse factor would overshoot it in a single click.
+# factors [50, 500, 5000, 50000] raw cycles (1 LSB = 20ns) — i.e. 1us/10us/
+# 100us/1ms per click. No field-level factor goes below 1us: nanosecond
+# resolution on a period/width/delay is never needed and only clutters the
+# display (2026-08-20, confirmed by Denis) — sub-us resolution is
+# deliberately reserved for anode_deadtime alone. anode_deadtime is the one
+# exception: role: simple, fixed step 1 = 20ns, since its whole usable range
+# is a few hundred to ~2000ns and a coarse factor would overshoot it in a
+# single click.
 
 config:
   version: '1.0'
@@ -61,10 +63,11 @@ menu:
     title: Period
     type: dword
     role: factor
+    draw_value_cb: hipims_draw_time_value_cb
     default: 0
     min: 0
     max: 8338607        # MAX_PERIOD_CYCLES (2^23-1 minus pre/post margin)
-    factors: [1, 10, 100, 1000, 10000]
+    factors: [50, 500, 5000, 50000]
     event_cb: hipims_on_value_changed # reg = 2 (REG_PERIOD)
 
   - id: leg_a
@@ -74,10 +77,11 @@ menu:
       title: Width
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: 0
       max: 8388607      # TIME_WIDTH_MAX (2^23-1)
-      factors: [1, 10, 100, 1000]
+      factors: [50, 500, 5000]
       event_cb: hipims_on_value_changed # reg = 3 (REG_LEGA_WIDTH)
 
   - id: leg_b
@@ -95,19 +99,21 @@ menu:
       title: Delay
       type: dword           # signed int32_t (fixed 2026-08-19)
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: -25000        # -MARGIN_CYCLES (-500us pre-trigger)
       max: 8413607       # TIME_WIDTH_MAX + MARGIN_CYCLES
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed # reg = 5 (REG_LEGB_DELAY)
     - id: leg_b_width
       title: Width
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: 0
       max: 8388607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed # reg = 6 (REG_LEGB_WIDTH)
 
   - id: channel_0
@@ -125,19 +131,21 @@ menu:
       title: Delay
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: -25000
       max: 8413607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 8
     - id: ch0_width
       title: Width
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: 0
       max: 8388607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 9
 
   - id: channel_1
@@ -155,19 +163,21 @@ menu:
       title: Delay
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: -25000
       max: 8413607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 11
     - id: ch1_width
       title: Width
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: 0
       max: 8388607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 12
 
   - id: channel_2
@@ -185,19 +195,21 @@ menu:
       title: Delay
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: -25000
       max: 8413607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 14
     - id: ch2_width
       title: Width
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: 0
       max: 8388607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 15
 
   - id: channel_3
@@ -215,19 +227,21 @@ menu:
       title: Delay
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: -25000
       max: 8413607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 17
     - id: ch3_width
       title: Width
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: 0
       max: 8388607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 18
 
   - id: channel_4
@@ -245,19 +259,21 @@ menu:
       title: Delay
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: -25000
       max: 8413607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 20
     - id: ch4_width
       title: Width
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: 0
       max: 8388607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 21
 
   - id: channel_5
@@ -275,19 +291,21 @@ menu:
       title: Delay
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: -25000
       max: 8413607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 23
     - id: ch5_width
       title: Width
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: 0
       max: 8388607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 24
 
   - id: channel_6
@@ -305,19 +323,21 @@ menu:
       title: Delay
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: -25000
       max: 8413607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 26
     - id: ch6_width
       title: Width
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: 0
       max: 8388607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 27
 
   - id: channel_7
@@ -335,19 +355,21 @@ menu:
       title: Delay
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: -25000
       max: 8413607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 29
     - id: ch7_width
       title: Width
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: 0
       max: 8388607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 30
 
   - id: anode
@@ -365,33 +387,37 @@ menu:
       title: Period
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: 0
       max: 8388607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed # reg = 32
     - id: anode_delay
       title: Delay
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: -25000
       max: 8413607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed  # reg = 33
     - id: anode_duration
       title: Duration
       type: dword
       role: factor
+      draw_value_cb: hipims_draw_time_value_cb
       default: 0
       min: 0
       max: 8388607
-      factors: [1, 10, 100, 1000, 10000]
+      factors: [50, 500, 5000, 50000]
       event_cb: hipims_on_value_changed # reg = 34
     - id: anode_deadtime
       title: Deadtime
       type: dword
       role: simple
+      draw_value_cb: hipims_draw_deadtime_value_cb
       step: 1              # fixed 20ns/click, deliberately no coarse factor
       controls: [position]
       default: 0

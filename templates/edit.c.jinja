@@ -6,7 +6,9 @@
 
 {% for function_name, function_info in functions.items() %}{# functions #}
 {% if function_info.purpose is in ["change_index", "change_factor_index", "change_value"] %}
-{% if function_info.role == "simple" %}
+{% if function_info.source == "custom" %}
+{# Custom click_cb/position_cb: declaration only (menu_edit.h), body is hand-written -- regardless of role. #}
+{% elif function_info.role == "simple" %}
 {% include "edit_simple.c.jinja" %}
 
 
