@@ -61,6 +61,17 @@
 - `float` осознанно не тронут: точность зависит от роли (`%3.3f` в `simple`,
   `%2.2f` в `factor`/`fixed`), поэтому ветка остаётся в шаблонах.
 
+### 🐛 Закрыт пробел с типом `float` + защита «тип без c_type»
+
+- `float` был валиден по JSON Schema, но отсутствовал в `types:`/`roles:` в
+  [`config/menu_data.yaml`](../config/menu_data.yaml) — узел `type: float`
+  молча генерировал `None` в качестве C-типа. Добавлен `float: {c_type: float}`
+  и роли `simple`/`factor` (не `fixed` — вне скоупа).
+- [`MenuValidator`](../generate_menu/menu_validator.py) теперь отклоняет любой
+  используемый тип без `c_type` в `menu_data.yaml` — тип, добавленный в enum
+  схемы, но забытый в конфиге, падает на валидации, а не просачивается как
+  `None` в сгенерированный C.
+
 ###  `menu_draw_pad_marker()` стал публичным
 
 - Хелпер паддинга строки и маркера состояния в

@@ -8,13 +8,14 @@ types:
   uword: {c_type: uint16_t, printf_format: "%lu", printf_cast: "unsigned long"}
   dword: {c_type: int32_t, printf_format: "%ld", printf_cast: long}
   udword: {c_type: uint32_t, printf_format: "%lu", printf_cast: "unsigned long"}
+  float: {c_type: float}
   string: {c_type: "const char*"}
   callback: {c_type: "void*"}
 
 roles:
-  simple: [byte, ubyte, word, uword, dword, udword]
+  simple: [byte, ubyte, word, uword, dword, udword, float]
   fixed: [string, byte, ubyte, word, uword, dword, udword]
-  factor: [byte, ubyte, word, uword, dword, udword]
+  factor: [byte, ubyte, word, uword, dword, udword, float]
   callback: [callback]
 
 controls:

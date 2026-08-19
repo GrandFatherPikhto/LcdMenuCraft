@@ -99,6 +99,28 @@ def test_min_greater_than_max_without_default(menu_config):
     assert any("min (100) > max (10)" in message for message in errors["n"])
 
 
+def test_type_without_c_type_mapping(menu_config):
+    """A type missing from menu_data.yaml must fail validation explicitly.
+
+    JSON Schema would reject a completely unknown type first, so the custom
+    tree walker is exercised directly (same pattern as the other custom checks).
+    """
+    validator = _make_validator(menu_config)
+    items = [_item("n", title="N", type="nonexistent_type", role="simple")]
+    errors = {}
+    validator._validate_tree(items, [], errors)
+    assert "n" in errors
+    assert any("has no c_type mapping" in message for message in errors["n"])
+
+
+def test_float_type_valid(menu_config):
+    """float now has a c_type mapping, so a float leaf validates cleanly."""
+    validator = _make_validator(menu_config)
+    items = [_item("f", title="F", type="float", role="simple",
+                   default=1.5, min=0, max=10, step=0.1)]
+    assert validator.validate(_make_menu(items)) == {}
+
+
 def test_default_not_in_allowed_values(menu_config):
     validator = _make_validator(menu_config)
     items = [_item("f", title="F", type="string", role="fixed",

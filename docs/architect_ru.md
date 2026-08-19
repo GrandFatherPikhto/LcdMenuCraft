@@ -88,8 +88,12 @@ MenuCraft/
 также `printf_format`/`printf_cast` (например `%ld` + `(long)` для знаковых,
 `%lu` + `(unsigned long)` для беззнаковых). Их отдают `MenuData.printf_format()`/
 `printf_cast()`, и шаблоны отрисовки используют их вместо захардкоженных списков
-типов. У `float` намеренно нет `printf_format` — точность зависит от роли
-(`%3.3f` в `simple`, `%2.2f` в `factor`/`fixed`) и остаётся в шаблонах.
+типов. `float` теперь есть в `types:` с `c_type: float` (роли `simple`/`factor`,
+не `fixed`), но у него намеренно нет `printf_format` — точность зависит от роли
+(`%3.3f` в `simple`, `%2.2f` в `factor`/`fixed`) и остаётся в шаблонах отрисовки.
+[`MenuValidator`](../generate_menu/menu_validator.py) отклоняет любой используемый
+тип без `c_type` в `menu_data.yaml` — тип, добавленный в enum JSON Schema, но
+забытый в конфиге, падает на валидации, а не тихо генерирует `None` в C.
 
 ### 2.3 [`menu_validator.py`](../generate_menu/menu_validator.py:16) — `MenuValidator`
 

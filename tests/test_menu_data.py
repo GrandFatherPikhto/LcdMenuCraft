@@ -25,6 +25,17 @@ def test_c_type_mapping(menu_data):
     assert menu_data.c_type("missing") is None
 
 
+def test_float_type_mapping(menu_data):
+    assert menu_data.c_type("float") == "float"
+    # float deliberately has no printf_format/printf_cast (role-dependent precision).
+    assert menu_data.printf_format("float") is None
+    assert menu_data.printf_cast("float") is None
+    # float is allowed for simple/factor, but not fixed (out of scope).
+    float_roles = set(menu_data.get_roles_for_type("float"))
+    assert {"simple", "factor"} <= float_roles
+    assert "fixed" not in float_roles
+
+
 def test_roles_and_their_types(menu_data):
     assert "simple" in menu_data.roles
     assert "fixed" in menu_data.roles

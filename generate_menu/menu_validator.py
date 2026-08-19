@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Any
 
 from .i18n import _
 from .menu_config import MenuConfig
+from .menu_data import MenuData
 
 class ParserError(Exception):
     """Raised when menu validation fails."""
@@ -17,6 +18,7 @@ class MenuValidator:
         self._validator = Draft7Validator(self._config.menu_schema)
         self._ids = []
         self._errors = {}
+        self._menu_data = MenuData(self._config)
 
     def validate(self, menu_data: Dict = None) -> Dict[str, List[str]]:
         """
@@ -77,6 +79,10 @@ class MenuValidator:
         if 'items' not in item and 'type' not in item:
             errors.append(_("Leaf element must have 'type'"))
         
+        # Check: a used type must have a c_type mapping in menu_data.yaml
+        if 'type' in item:
+            errors.extend(self._validate_type_has_c_type(item))
+        
         # Validate the default value
         if 'default' in item:
             errors.extend(self._validate_default_value(item))
@@ -111,6 +117,15 @@ class MenuValidator:
                 errors.append(_("default value {default} not in allowed values").format(
                     default=item['default']))
         
+        return errors
+
+    def _validate_type_has_c_type(self, item: Dict) -> List[str]:
+        """Validates that the item's type has a c_type mapping in menu_data.yaml."""
+        errors = []
+        node_type = item.get("type")
+        if node_type and self._menu_data.c_type(node_type) is None:
+            errors.append(_("type '{type}' has no c_type mapping in menu_data.yaml").format(
+                type=node_type))
         return errors
 
     def _validate_min_max(self, item: Dict) -> List[str]:

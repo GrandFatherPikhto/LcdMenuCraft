@@ -86,8 +86,13 @@ Integer types (`byte`, `ubyte`, `word`, `uword`, `dword`, `udword`) also carry
 `printf_format`/`printf_cast` (e.g. `%ld` + `(long)` for signed, `%lu` +
 `(unsigned long)` for unsigned). `MenuData.printf_format()`/`printf_cast()`
 expose them and the draw templates use them instead of hardcoded type lists.
-`float` deliberately has no `printf_format` — its precision is role-dependent
-(`%3.3f` in `simple`, `%2.2f` in `factor`/`fixed`) and stays hardcoded.
+`float` is present in `types:` with `c_type: float` (roles `simple`/`factor`,
+not `fixed`) but deliberately has no `printf_format` — its precision is
+role-dependent (`%3.3f` in `simple`, `%2.2f` in `factor`/`fixed`) and stays
+hardcoded in the draw templates. [`MenuValidator`](../generate_menu/menu_validator.py)
+rejects any used type without a `c_type` mapping in `menu_data.yaml`, so a type
+added to the JSON Schema enum but forgotten in the config fails validation
+instead of silently generating `None` in C.
 
 ### 2.3 [`menu_validator.py`](../generate_menu/menu_validator.py:16) — `MenuValidator`
 

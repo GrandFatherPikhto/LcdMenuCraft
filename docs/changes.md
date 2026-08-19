@@ -60,7 +60,18 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/).
 - `float` is deliberately left as-is: its precision is role-dependent
   (`%3.3f` in `simple`, `%2.2f` in `factor`/`fixed`), so it stays in the templates.
 
-### 📏 `menu_draw_pad_marker()` made public
+### 🐛 `float` type gap closed + missing-`c_type` guard
+
+- `float` was valid in the JSON Schema enum but missing from `types:`/`roles:`
+  in [`config/menu_data.yaml`](../config/menu_data.yaml) — a `type: float`
+  node silently generated `None` as the C type. Added `float: {c_type: float}`
+  and added it to the `simple`/`factor` roles (not `fixed`, out of scope).
+- [`MenuValidator`](../generate_menu/menu_validator.py) now rejects any used
+  type without a `c_type` mapping in `menu_data.yaml` — a type added to the
+  schema enum but forgotten in the config fails validation instead of leaking
+  `None` into generated C.
+
+###  `menu_draw_pad_marker()` made public
 
 - The line-padding/state-marker helper in [`draw.c.jinja`](../templates/draw.c.jinja)
   was `static` and undeclared, so any custom `draw_value_cb` had to hand-copy its
