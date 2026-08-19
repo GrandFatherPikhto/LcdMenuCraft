@@ -5,6 +5,67 @@ The format is inspired by [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### 🖥️ PyQt6 GUI
+
+- Added [`gui.py`](../gui.py) / [`gui/`](../gui/) — tree + node property form, Validate
+  and Generate C files buttons, a log panel, and a shadow config
+  (`config/.gui_config.yaml`, gitignored) so the real `config/config.yaml` is never
+  touched by the GUI. See [`docs/gui.md`](./gui.md) / [`docs/gui_ru.md`](./gui_ru.md).
+
+### 🔀 `--menu PATH` / `menu_override`
+
+- [`MenuConfig`](../generate_menu/menu_config.py), [`MenuCraft`](../generate_menu/menucraft.py)
+  and [`MenuGenerator`](../generate_menu/menu_generator.py) accept an optional
+  `menu_override` path that replaces just the `menu` tree, keeping
+  `menu_schema`/`data_rules`/`generation_files`/`flatten` from the main config.
+  Exposed on the CLI as `--menu PATH` — generate a different device's tree without
+  writing a new wrapper `config/*.yaml`.
+- The test suite uses the same mechanism: [`menu/test.yaml`](../menu/test.yaml) is a
+  frozen fixture tree, wired in via `conftest.py`'s `menu_override_path` fixture, so
+  tests no longer depend on the actively-edited `menu/menu.yaml`.
+
+### 🐛 Type & callback-generation bug fixes
+
+- `dword` incorrectly mapped to `uint32_t` (duplicating `udword`) instead of the
+  signed `int32_t` in [`config/menu_data.yaml`](../config/menu_data.yaml) — broke
+  negative-range fields. Fixed, along with hardcoded `(uint32_t)` casts in
+  [`edit_factor.c.jinja`](../templates/edit_factor.c.jinja) that broke once `dword`
+  became signed.
+- `double_click_cb`/`long_click_cb`/`event_cb` had no forward declaration anywhere
+  when custom-named — added to [`edit.h.jinja`](../templates/edit.h.jinja).
+- A custom `draw_value_cb`/`click_cb`/`position_cb` name only got an honest
+  "declaration only" override for `role: callback` — for `factor`/`simple`/`fixed`
+  the template still generated a body under that name, because the branch checked
+  `role` instead of `function_info.source`. Fixed in
+  [`draw.c.jinja`](../templates/draw.c.jinja) and
+  [`edit.c.jinja`](../templates/edit.c.jinja).
+- `%d`/`%u` on `int32_t`/`uint32_t` values replaced with `%ld`/`%lu` +
+  `(long)`/`(unsigned long)` casts in the `draw_*.c.jinja` templates.
+- `menu_draw_update()` fell off the end of a `bool`-returning function on the normal
+  path — added the missing `return true;`.
+
+### 🖱️ State-aware click dispatch
+
+- Added `menu_click()`/`menu_long_click()` to
+  [`handle.c.jinja`](../templates/handle.c.jinja)/`handle.h.jinja`: short click
+  always means "advance" (drill in, or exit edit mode if already editing), long
+  click is the "alternate action" (up a level while navigating, change
+  factor/step while editing). Firmware no longer needs to branch on
+  `menu_state()` itself; `menu_enter()`/`menu_back()` are still exposed directly.
+
+### 🏷️ Static `tag` + generic value accessors
+
+- Added an optional `tag` field on menu nodes (e.g. a hardware register id),
+  surfaced read-only as `ctx->configs[id].tag` — static config, not the mutable
+  value union.
+- Added [`value_access.h.jinja`/`.c.jinja`](../templates/value_access.c.jinja) →
+  `menu_get_int32`/`menu_set_int32`/`menu_get_uint32`/`menu_set_uint32`, which
+  dispatch on a node's category to read/write its current value regardless of
+  role. Combined with `tag`, replaces a hand-written per-`menu_id_t` `switch`
+  (e.g. mapping menu nodes to SPI registers) with a loop over `MENU_ID_COUNT`.
+
+## [2026-08-01] — Package restructure & i18n
+
 ### 🏗️ Package restructure
 
 - The project root now contains **only** the entry point [`generate_menu.py`](../generate_menu.py:1).

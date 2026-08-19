@@ -111,6 +111,21 @@ The generated C files appear in [`output/`](output/) (sources) and
 > asset directories (`config/`, `menu/`, `templates/`, `output/`) and the docs; all
 > Python sources live inside the [`generate_menu/`](generate_menu/) package.
 
+### CLI options
+
+| Flag | Meaning |
+|------|---------|
+| `--config PATH` | Main configuration file (default: `config/config.yaml`) |
+| `--menu PATH` | Override just the `menu` tree from `--config`, keeping schema/data-rules/templates from there — lets you generate a different device's menu without writing a new main config file for it |
+| `--flat-only` | Validate, flatten and save the flattened menu JSON, but skip C-code generation |
+| `--debug` | Enable DEBUG logging and detailed summaries |
+| `--quiet` | Only log errors |
+
+```bash
+# Generate a different device's tree without a new config/*.yaml wrapper
+python generate_menu.py --menu menu/hipims.yaml
+```
+
 ## Configuration
 
 The main configuration file is [`config/config.yaml`](config/config.yaml).
@@ -210,6 +225,7 @@ A node in the menu tree can use the following fields:
 | `navigate` | Navigation: `cyclic`, `limit` |
 | `items` | Child nodes (sub-menu) |
 | `click_cb`, `position_cb`, `double_click_cb`, `long_click_cb`, `event_cb`, `draw_value_cb` | Custom callbacks |
+| `tag` | Optional static integer metadata (e.g. a hardware register id), exposed read-only as `ctx->configs[id].tag` — never part of the mutable value union |
 
 If a callback is **not** specified, it is generated automatically
 (e.g. `menu_draw_{type}_{role}_value_cb` for drawing, `{type}_{role}_{control}_{navigate}_cb`
@@ -242,6 +258,7 @@ The generator produces a full C module:
 - `menu_data_*.h/c` — data configuration, context, value and name tables
 - `menu_tree.h/c` — menu tree with navigation links
 - `menu_value.h/c` — value access functions
+- `menu_value_access.h/c` — generic `menu_get_int32`/`menu_set_int32`/`menu_get_uint32`/`menu_set_uint32`, dispatching on a node's category regardless of role
 - `menu_navigate.h/c` — navigation functions
 - `menu_edit.h/c` — editing functions
 - `menu_draw.h/c` — drawing functions

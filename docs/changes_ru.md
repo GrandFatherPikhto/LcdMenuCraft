@@ -5,6 +5,69 @@
 
 ## [Unreleased]
 
+### 🖥️ PyQt6 GUI
+
+- Добавлены [`gui.py`](../gui.py) / [`gui/`](../gui/) — дерево + форма свойств узла,
+  кнопки Validate и Generate C files, панель логов и теневой конфиг
+  (`config/.gui_config.yaml`, в .gitignore), чтобы GUI никогда не трогал реальный
+  `config/config.yaml`. См. [`docs/gui.md`](./gui.md) / [`docs/gui_ru.md`](./gui_ru.md).
+
+### 🔀 `--menu PATH` / `menu_override`
+
+- [`MenuConfig`](../generate_menu/menu_config.py), [`MenuCraft`](../generate_menu/menucraft.py)
+  и [`MenuGenerator`](../generate_menu/menu_generator.py) принимают необязательный
+  путь `menu_override`, подменяющий только дерево `menu`, оставляя
+  `menu_schema`/`data_rules`/`generation_files`/`flatten` из главного конфига.
+  Доступен в CLI как `--menu PATH` — генерирует дерево другого устройства без
+  отдельного главного конфига под него.
+- Тестовый набор использует тот же механизм: [`menu/test.yaml`](../menu/test.yaml) —
+  замороженная фикстура дерева, подключаемая через фикстуру `menu_override_path` в
+  `conftest.py`, так что тесты больше не зависят от активно редактируемого
+  `menu/menu.yaml`.
+
+### 🐛 Исправления типов и генерации колбэков
+
+- `dword` ошибочно был сопоставлен с `uint32_t` (дублируя `udword`) вместо
+  знакового `int32_t` в [`config/menu_data.yaml`](../config/menu_data.yaml) —
+  ломало поля с отрицательным диапазоном. Исправлено вместе с зашитыми
+  `(uint32_t)`-каст в [`edit_factor.c.jinja`](../templates/edit_factor.c.jinja),
+  которые сломались после того, как `dword` стал знаковым.
+- `double_click_cb`/`long_click_cb`/`event_cb` при кастомном имени нигде не
+  форвард-декларировались — добавлено в [`edit.h.jinja`](../templates/edit.h.jinja).
+- Кастомное имя `draw_value_cb`/`click_cb`/`position_cb` честно работало как
+  «только объявление» лишь для `role: callback` — для `factor`/`simple`/`fixed`
+  шаблон всё равно генерировал тело под этим именем, т.к. ветвление шло по `role`,
+  а не по `function_info.source`. Исправлено в
+  [`draw.c.jinja`](../templates/draw.c.jinja) и
+  [`edit.c.jinja`](../templates/edit.c.jinja).
+- `%d`/`%u` на значениях `int32_t`/`uint32_t` заменены на `%ld`/`%lu` с явными
+  приведениями типов `(long)`/`(unsigned long)` в шаблонах `draw_*.c.jinja`.
+- `menu_draw_update()` выпадала из конца `bool`-функции на обычном пути без
+  `return` — добавлен недостающий `return true;`.
+
+### 🖱️ Диспетчеризация клика с учётом состояния
+
+- Добавлены `menu_click()`/`menu_long_click()` в
+  [`handle.c.jinja`](../templates/handle.c.jinja)/`handle.h.jinja`: короткий клик
+  всегда означает «вперёд» (войти глубже, либо выйти из редактирования, если уже
+  в нём), долгий клик — «альтернативное действие» (уровень выше при навигации,
+  смена множителя/шага при редактировании). Прошивке больше не нужно самой
+  ветвиться по `menu_state()`; `menu_enter()`/`menu_back()` по-прежнему доступны
+  напрямую.
+
+### 🏷️ Статический `tag` и общие аксессоры значения
+
+- Добавлено необязательное поле `tag` для узлов меню (например, адрес
+  аппаратного регистра), доступное только для чтения как `ctx->configs[id].tag`
+  — статическая конфигурация, а не изменяемый union значения.
+- Добавлены [`value_access.h.jinja`/`.c.jinja`](../templates/value_access.c.jinja) →
+  `menu_get_int32`/`menu_set_int32`/`menu_get_uint32`/`menu_set_uint32`,
+  диспетчеризующие по категории узла чтение/запись текущего значения независимо
+  от роли. Вместе с `tag` заменяют ручной `switch` по каждому `menu_id_t`
+  (например, отображение узлов меню на SPI-регистры) циклом по `MENU_ID_COUNT`.
+
+## [2026-08-01] — Реструктуризация пакета и i18n
+
 ### 🏗️ Реструктуризация пакета
 
 - В корне проекта теперь находится **только** точка входа [`generate_menu.py`](../generate_menu.py:1).

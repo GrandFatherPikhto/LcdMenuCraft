@@ -50,6 +50,7 @@ file. Running `python generate_menu.py` from the project root writes into
 | `menu_edit.c` / `include/menu_edit.h` | `edit.c.jinja` + `edit_*.c.jinja` | Value editing callbacks |
 | `menu_draw.c` / `include/menu_draw.h` | `draw.c.jinja` + `draw_*.c.jinja` | Drawing into title/value buffers |
 | `menu_name.c` / `include/menu_name.h` | `name.c.jinja` / `name.h.jinja` | Node-name lookup helpers |
+| `menu_value_access.c` / `include/menu_value_access.h` | `value_access.c.jinja` / `value_access.h.jinja` | Generic `menu_get_int32`/`menu_set_int32`/`menu_get_uint32`/`menu_set_uint32` |
 
 Two debug artifacts are also written: `output/flatterned.json` (the flattened tree)
 and `output/functions.json` (the function inventory).
@@ -90,13 +91,20 @@ typedef struct menu_context {
 
 ### 3.3 Node config ([`menu_config.h`](../output/include/menu_config.h))
 
-`menu_node_config_t` holds the node id, category, six callback pointers and a
-`union` of category-specific static data:
+`menu_node_config_t` holds the node id, category, a static `tag` (see below), six
+callback pointers and a `union` of category-specific static data:
 
 - `string_fixed_config_t` — `values[]` (string set) + `count` + `default_idx`;
 - `udword_factor_config_t` — `min`, `max`, `step`, `default_value`, `factors[]`,
   `count`, `default_idx`;
 - `ubyte_simple_config_t` — `default_value`, `step`, `min`, `max`.
+
+`tag` is an optional `uint32_t` set from the node's `tag:` key in the menu YAML
+(0 if unset) — arbitrary static metadata such as a hardware register id, meant
+to let integrators replace a hand-written `switch (id)` with a loop over
+`MENU_ID_COUNT` (e.g. `if (ctx->configs[id].tag) spi_write_reg(ctx->configs[id].tag, menu_get_int32(ctx, id));`).
+It lives in the **static config**, not the mutable value union, because it's a
+tree property, not runtime state.
 
 ### 3.4 Node value ([`menu_value.h`](../output/include/menu_value.h))
 
@@ -118,8 +126,10 @@ The whole module is used through [`menu.h`](../output/include/menu.h):
 |----------|---------|
 | `menu_init()` | Zero the context and bind the static tables |
 | `menu_position(int8_t delta)` | Encoder turn → navigate / change value |
-| `menu_enter()` | Confirm / enter sub-menu / start editing |
+| `menu_enter()` | Confirm / enter sub-menu / start editing; if already editing, calls `click_cb` |
 | `menu_back()` | Back to parent / leave edit mode |
+| `menu_click()` | State-aware short click: `menu_enter()` outside edit mode, `menu_back()` while editing |
+| `menu_long_click()` | State-aware long click: the mirror image of `menu_click()` — `menu_back()` outside edit mode, `menu_enter()` while editing |
 | `menu_update()` | If `dirty`, redraw into `title_buf` / `value_buf` |
 | `menu_needs_redraw()` / `menu_ack_redraw()` | Check & consume the redraw flag |
 | `menu_title_buf()` / `menu_value_buf()` | Pointers to the filled buffers |
@@ -129,7 +139,9 @@ Typical use in a firmware main loop:
 
 ```c
 // from input handling (button ISR, encoder):
-menu_position(delta);      // or menu_enter(), menu_back()
+menu_position(delta);      // encoder turn
+menu_click();               // short click: drill in / exit edit mode
+menu_long_click();           // long click: up a level / change factor while editing
 menu_set_dirty();          // mark that the display should be refreshed
 
 // from the main loop:
@@ -138,6 +150,41 @@ if (menu_needs_redraw()) {
     lcd_goto(0, 0); lcd_puts(menu_title_buf());
     lcd_goto(0, 1); lcd_puts(menu_value_buf());
     menu_ack_redraw();
+}
+```
+
+> 💡 `menu_click()`/`menu_long_click()` exist because `menu_enter()`/`menu_back()`
+> already mean different things depending on `menu_state()` (drill-in vs.
+> change-factor, exit-edit vs. up-a-level) — they just pick which of the two
+> primitives to call for a given gesture, so firmware code never has to branch
+> on `menu_state()` itself. `menu_enter()`/`menu_back()` are still exposed
+> directly if you want to wire gestures to state some other way.
+
+### 4.1 Generic value access ([`menu_value_access.h`](../output/include/menu_value_access.h))
+
+Reading or writing "the current value" of a leaf normally means knowing its
+category (to pick the right `union` member — `.value` for `simple`/`factor`,
+`.idx` for `fixed`). `menu_get_int32`/`menu_set_int32`/`menu_get_uint32`/`menu_set_uint32`
+do that dispatch for you via a generated `switch (ctx->configs[id].category)`,
+so integrators can loop over `MENU_ID_COUNT` instead of hand-writing one
+`switch` arm per node id:
+
+```c
+int32_t  menu_get_int32(menu_context_t *ctx, menu_id_t id);
+void     menu_set_int32(menu_context_t *ctx, menu_id_t id, int32_t value);
+uint32_t menu_get_uint32(menu_context_t *ctx, menu_id_t id);
+void     menu_set_uint32(menu_context_t *ctx, menu_id_t id, uint32_t value);
+```
+
+Use the `uint32_t` pair for `udword` values above `INT32_MAX` — the `int32_t`
+pair would misinterpret them. Combined with [`tag`](#33-node-config-menuconfighoutputincludemenuconfigh),
+a per-id register-mapping `switch` collapses into:
+
+```c
+for (menu_id_t id = 0; id < MENU_ID_COUNT; id++) {
+    if (ctx->configs[id].tag != 0) {
+        hw_write_register(ctx->configs[id].tag, menu_get_int32(ctx, id));
+    }
 }
 ```
 
@@ -218,8 +265,9 @@ void pwm_frequency_change_cb(menu_context_t *ctx, menu_id_t id, int8_t delta);
    `menu*.h`.
 3. **Provide `pulse_config.h`** (or change `include_files` in the menu config and
    regenerate) with the user-callback declarations and implementations.
-4. **Wire input** — call `menu_position()`, `menu_enter()`, `menu_back()` from your
-   encoder/button code (ISR or polling task).
+4. **Wire input** — call `menu_position()` from your encoder code, and
+   `menu_click()`/`menu_long_click()` (or `menu_enter()`/`menu_back()` directly)
+   from your button code (ISR or polling task).
 5. **Drive the display** — in the main loop call `menu_update()` and copy the two
    buffers to the LCD as shown in [§4](#4-runtime-flow).
 6. **Optimise for the target** — for STM32F103 use `--specs=nano.specs`

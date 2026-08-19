@@ -52,6 +52,7 @@
 | `menu_edit.c` / `include/menu_edit.h` | `edit.c.jinja` + `edit_*.c.jinja` | Колбэки редактирования значений |
 | `menu_draw.c` / `include/menu_draw.h` | `draw.c.jinja` + `draw_*.c.jinja` | Отрисовка в буферы title/value |
 | `menu_name.c` / `include/menu_name.h` | `name.c.jinja` / `name.h.jinja` | Хелперы поиска имён узлов |
+| `menu_value_access.c` / `include/menu_value_access.h` | `value_access.c.jinja` / `value_access.h.jinja` | Общие `menu_get_int32`/`menu_set_int32`/`menu_get_uint32`/`menu_set_uint32` |
 
 Дополнительно записываются два отладочных артефакта: `output/flatterned.json`
 (плоский список дерева) и `output/functions.json` (реестр функций).
@@ -92,13 +93,20 @@ typedef struct menu_context {
 
 ### 3.3 Конфигурация узла ([`menu_config.h`](../output/include/menu_config.h))
 
-`menu_node_config_t` содержит id узла, категорию, шесть указателей на колбэки и
-`union` категорие-специфичных статических данных:
+`menu_node_config_t` содержит id узла, категорию, статический `tag` (см. ниже),
+шесть указателей на колбэки и `union` категорие-специфичных статических данных:
 
 - `string_fixed_config_t` — `values[]` (набор строк) + `count` + `default_idx`;
 - `udword_factor_config_t` — `min`, `max`, `step`, `default_value`, `factors[]`,
   `count`, `default_idx`;
 - `ubyte_simple_config_t` — `default_value`, `step`, `min`, `max`.
+
+`tag` — необязательный `uint32_t`, задаётся ключом `tag:` узла в menu YAML (0,
+если не задан) — произвольные статические метаданные, например адрес
+аппаратного регистра; позволяет заменить ручной `switch (id)` циклом по
+`MENU_ID_COUNT` (например, `if (ctx->configs[id].tag) spi_write_reg(ctx->configs[id].tag, menu_get_int32(ctx, id));`).
+Живёт в **статической конфигурации**, а не в изменяемом union значения —
+это свойство дерева, а не состояние выполнения.
 
 ### 3.4 Значение узла ([`menu_value.h`](../output/include/menu_value.h))
 
@@ -120,8 +128,10 @@ typedef struct menu_context {
 |---------|------------|
 | `menu_init()` | Обнуляет контекст и связывает статические таблицы |
 | `menu_position(int8_t delta)` | Поворот энкодера → навигация / изменение значения |
-| `menu_enter()` | Подтверждение / вход в подменю / начало редактирования |
+| `menu_enter()` | Подтверждение / вход в подменю / начало редактирования; если уже в редактировании — вызывает `click_cb` |
 | `menu_back()` | Назад к родителю / выход из режима редактирования |
+| `menu_click()` | Короткий клик с учётом состояния: `menu_enter()` вне редактирования, `menu_back()` в редактировании |
+| `menu_long_click()` | Долгий клик с учётом состояния: зеркально `menu_click()` — `menu_back()` вне редактирования, `menu_enter()` в редактировании |
 | `menu_update()` | Если `dirty` — перерисовка в `title_buf` / `value_buf` |
 | `menu_needs_redraw()` / `menu_ack_redraw()` | Проверка и сброс флага перерисовки |
 | `menu_title_buf()` / `menu_value_buf()` | Указатели на заполненные буферы |
@@ -131,7 +141,9 @@ typedef struct menu_context {
 
 ```c
 // из обработки ввода (ISR кнопки, энкодер):
-menu_position(delta);      // или menu_enter(), menu_back()
+menu_position(delta);      // поворот энкодера
+menu_click();               // короткий клик: войти глубже / выйти из редактирования
+menu_long_click();           // долгий клик: уровень выше / сменить множитель в редактировании
 menu_set_dirty();          // пометить, что дисплей нужно обновить
 
 // из главного цикла:
@@ -140,6 +152,42 @@ if (menu_needs_redraw()) {
     lcd_goto(0, 0); lcd_puts(menu_title_buf());
     lcd_goto(0, 1); lcd_puts(menu_value_buf());
     menu_ack_redraw();
+}
+```
+
+> 💡 `menu_click()`/`menu_long_click()` существуют потому, что `menu_enter()`/
+> `menu_back()` уже означают разное в зависимости от `menu_state()` (войти
+> глубже vs. сменить множитель, выйти из редактирования vs. уровень выше) —
+> они просто выбирают, какой из двух примитивов вызвать под конкретный жест,
+> чтобы прошивке не нужно было самой ветвиться по `menu_state()`.
+> `menu_enter()`/`menu_back()` по-прежнему доступны напрямую, если нужно
+> связать жесты с состоянием как-то иначе.
+
+### 4.1 Общий доступ к значению ([`menu_value_access.h`](../output/include/menu_value_access.h))
+
+Чтение или запись «текущего значения» листа обычно требует знать его
+категорию (чтобы выбрать нужный член `union` — `.value` для
+`simple`/`factor`, `.idx` для `fixed`). `menu_get_int32`/`menu_set_int32`/
+`menu_get_uint32`/`menu_set_uint32` делают эту диспетчеризацию сами через
+сгенерированный `switch (ctx->configs[id].category)` — можно пройти циклом
+по `MENU_ID_COUNT` вместо ручного `switch` на каждый id узла:
+
+```c
+int32_t  menu_get_int32(menu_context_t *ctx, menu_id_t id);
+void     menu_set_int32(menu_context_t *ctx, menu_id_t id, int32_t value);
+uint32_t menu_get_uint32(menu_context_t *ctx, menu_id_t id);
+void     menu_set_uint32(menu_context_t *ctx, menu_id_t id, uint32_t value);
+```
+
+Для значений `udword` выше `INT32_MAX` используйте пару `uint32_t` — пара
+`int32_t` их некорректно интерпретирует. Вместе с [`tag`](#33-конфигурация-узла-menuconfighoutputincludemenuconfigh)
+свитч отображения id → регистр схлопывается в:
+
+```c
+for (menu_id_t id = 0; id < MENU_ID_COUNT; id++) {
+    if (ctx->configs[id].tag != 0) {
+        hw_write_register(ctx->configs[id].tag, menu_get_int32(ctx, id));
+    }
 }
 ```
 
@@ -221,8 +269,9 @@ void pwm_frequency_change_cb(menu_context_t *ctx, menu_id_t id, int8_t delta);
 2. **Добавьте include-путь** — укажите компилятору папку, где лежат `menu*.h`.
 3. **Создайте `pulse_config.h`** (или измените `include_files` в конфиге меню и
    перегенерируйте) с объявлениями и реализациями пользовательских колбэков.
-4. **Подключите ввод** — вызывайте `menu_position()`, `menu_enter()`,
-   `menu_back()` из кода энкодера/кнопок (ISR или опрашиваемая задача).
+4. **Подключите ввод** — вызывайте `menu_position()` из кода энкодера, а
+   `menu_click()`/`menu_long_click()` (либо напрямую `menu_enter()`/`menu_back()`)
+   из кода кнопок (ISR или опрашиваемая задача).
 5. **Управляйте дисплеем** — в главном цикле вызывайте `menu_update()` и копируйте
    оба буфера на LCD, как показано в [§4](#4-как-работает-код-во-время-выполнения).
 6. **Оптимизируйте под целевой контроллер** — для STM32F103 используйте
