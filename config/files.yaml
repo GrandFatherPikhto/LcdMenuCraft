@@ -28,3 +28,5 @@ files:
   navigate.c.jinja: menu_navigate.c
   edit.h.jinja: include/menu_edit.h
   edit.c.jinja: menu_edit.c
+  value_access.h.jinja: include/menu_value_access.h
+  value_access.c.jinja: menu_value_access.c

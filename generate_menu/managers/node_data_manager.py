@@ -15,6 +15,7 @@ class NodeDataManager:
         self.default_idx = original_node.get("default_idx")
         self.factors = original_node.get("factors")
         self.values = original_node.get("values")
+        self.tag = original_node.get("tag")
         self._step = original_node.get("step")
         
         # Basic type and role properties

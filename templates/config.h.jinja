@@ -65,6 +65,7 @@ typedef void (*menu_handle_event_cb_t)(menu_context_t *ctx, menu_id_t id, menu_e
 typedef struct menu_node_config {
     menu_id_t id;
     menu_category_t category;
+    uint32_t tag; ///< Static per-node metadata from menu.yaml (e.g. hardware register id), 0 if not set
     menu_click_cb_t click_cb;
     menu_position_cb_t position_cb;
     menu_double_click_cb_t double_click_cb;

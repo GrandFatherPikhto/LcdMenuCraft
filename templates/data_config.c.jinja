@@ -20,6 +20,7 @@ static const menu_node_config_t s_menu_config[] = {
     [MENU_ID_{{leaf_id.upper()}}] = {        
         .id = MENU_ID_{{leaf_id.upper()}},
         .category = MENU_CATEGORY_{{leaf.category.name.upper()}},
+        .tag = {% if leaf.tag is not none %}{{ leaf.tag }}{% else %}0{% endif %},
         .click_cb = {% if leaf.effective_click_cb_name %}{{ leaf.effective_click_cb_name }}{% else %}NULL{% endif %},
         .position_cb = {% if leaf.effective_position_cb_name %}{{ leaf.effective_position_cb_name }}{% else %}NULL{% endif %},
         .double_click_cb = {% if leaf.effective_double_click_cb_name %}{{ leaf.effective_double_click_cb_name }}{% else %}NULL{% endif %},

@@ -1,0 +1,13 @@
+#ifndef MENU_VALUE_ACCESS_H
+#define MENU_VALUE_ACCESS_H
+
+#include <stdint.h>
+
+#include "menu_type.h"
+
+// Generic accessors: read/write a leaf's current value as int32_t,
+// regardless of its category (simple/factor -> .value, fixed -> selected .idx).
+int32_t menu_get_int32(menu_context_t *ctx, menu_id_t id);
+void menu_set_int32(menu_context_t *ctx, menu_id_t id, int32_t value);
+
+#endif /* MENU_VALUE_ACCESS_H */

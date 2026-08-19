@@ -108,6 +108,9 @@ $defs:
       draw_value_cb:
         type: string
         description: Custom value drawing function
+      tag:
+        type: integer
+        description: Arbitrary static metadata (e.g. hardware register id), exposed read-only as ctx->configs[id].tag
       default:
         type: [number, string]
       min:

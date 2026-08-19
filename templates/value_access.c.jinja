@@ -1,0 +1,41 @@
+#include "menu_value_access.h"
+#include "menu_config.h"
+#include "menu_value.h"
+#include "menu_context.h"
+
+int32_t menu_get_int32(menu_context_t *ctx, menu_id_t id) {
+    if (ctx == NULL || id >= MENU_ID_COUNT)
+        return 0;
+
+    switch (ctx->configs[id].category) {
+{% for category_name, category in categories.items() if category.type != "callback" %}
+    case MENU_CATEGORY_{{category_name.upper()}}:
+{% if category.role in ["simple", "factor"] %}
+        return (int32_t)ctx->values[id].data.{{category_name}}.value;
+{% elif category.role == "fixed" %}
+        return (int32_t)ctx->values[id].data.{{category_name}}.idx;
+{% endif %}
+{% endfor %}
+    default:
+        return 0;
+    }
+}
+
+void menu_set_int32(menu_context_t *ctx, menu_id_t id, int32_t value) {
+    if (ctx == NULL || id >= MENU_ID_COUNT)
+        return;
+
+    switch (ctx->configs[id].category) {
+{% for category_name, category in categories.items() if category.type != "callback" %}
+    case MENU_CATEGORY_{{category_name.upper()}}:
+{% if category.role in ["simple", "factor"] %}
+        ctx->values[id].data.{{category_name}}.value = ({{category.c_type}})value;
+{% elif category.role == "fixed" %}
+        ctx->values[id].data.{{category_name}}.idx = (uint8_t)value;
+{% endif %}
+        break;
+{% endfor %}
+    default:
+        break;
+    }
+}

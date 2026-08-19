@@ -99,6 +99,10 @@ class BaseFlatNode:
         return self._data_manager.factors
 
     @property
+    def tag(self):
+        return self._data_manager.tag
+
+    @property
     def values(self):
         return self._data_manager.values
 
